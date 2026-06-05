@@ -235,7 +235,7 @@ p, span, li, button, input, label, select, textarea {
 .senior-logo {
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: calc(1.4rem * var(--font-multiplier));
+  font-size: calc(1.85rem * var(--font-multiplier));
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -245,8 +245,8 @@ p, span, li, button, input, label, select, textarea {
 }
 
 .senior-logo .logo-icon-img {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   object-fit: contain;
   box-shadow: none;
@@ -296,7 +296,18 @@ p, span, li, button, input, label, select, textarea {
 }
 
 .btn:active {
-  transform: none; /* Flat design - no scaling on active */
+  transform: scale(0.97);
+  transition: transform 0.05s ease-in-out;
+}
+
+.accessibility-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.05s ease-in-out;
+}
+
+.card-interactive:active {
+  transform: scale(0.98);
+  transition: transform 0.05s ease-in-out;
 }
 
 /* Primary */
@@ -759,3 +770,58 @@ body.high-contrast .btn-listen-icon:hover {
   background-color: #FFE500 !important;
   color: #000000 !important;
 }
+
+.btn-listen-icon.speaking {
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  animation: speaking-pulse 1.4s infinite ease-in-out;
+}
+@keyframes speaking-pulse {
+  0%, 100% { transform: scale(1.02); }
+  50% { transform: scale(0.96); opacity: 0.9; }
+}
+body.high-contrast .btn-listen-icon.speaking {
+  background-color: #FFE500 !important;
+  color: #000000 !important;
+  animation: speaking-pulse-hc 1.4s infinite ease-in-out;
+}
+@keyframes speaking-pulse-hc {
+  0%, 100% { transform: scale(1.02); }
+  50% { transform: scale(0.96); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   PRACTICE SIMULATOR - Visual Pulse & Animated Arrow
+   ============================================================ */
+.pulse-correct-element {
+  animation: visual-pulse 1.5s infinite ease-in-out !important;
+  border-color: #B71C35 !important;
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes visual-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0px rgba(183, 28, 53, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(183, 28, 53, 0);
+    transform: scale(1.02);
+  }
+}
+
+.guided-arrow {
+  animation: arrow-bounce 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes arrow-bounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-6px); }
+}
+
