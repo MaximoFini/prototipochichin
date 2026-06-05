@@ -857,14 +857,6 @@ function App() {
           <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '12px' }}>
             <ShieldAlert size={36} style={{ color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                <span className="badge badge-gold">
-                  {getEscudoLevel(escudoTotalSessions)}
-                </span>
-                <span className="badge badge-green">
-                  🔥 {escudoStreak} días de racha
-                </span>
-              </div>
               <h3 style={{ color: 'var(--text-primary)', marginBottom: '6px', fontSize: 'calc(1.15rem * var(--font-multiplier))' }}>
                 Escudo anti-estafas Chichín
               </h3>
