@@ -116,12 +116,45 @@ function App() {
   const [practicePhase, setPracticePhase] = useState('context');
   // practiceStep: 1 (Home - buscar factura), 2 (Confirmar pago), 3 (Comprobante éxito)
   const [practiceStep, setPracticeStep] = useState(1);
+  const [showExplanationOverlay, setShowExplanationOverlay] = useState(true);
+
   const [inactivitySeconds, setInactivitySeconds] = useState(0);
   const [incorrectTapsCount, setIncorrectTapsCount] = useState(0);
   const [isRetest, setIsRetest] = useState(false);
   const [simulatedDaysPassed, setSimulatedDaysPassed] = useState(0);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [isRetestTime, setIsRetestTime] = useState(false);
+
+  const getAssistantText = useCallback(() => {
+    if (practicePhase === 'guided') {
+      if (practiceStep === 1) {
+        return `¡Hola ${userProfile.name}! Vamos a aprender a realizar una transferencia de forma segura. Primero, tocá el botón "Transferir dinero" que está en los accesos rápidos de arriba.`;
+      } else if (practiceStep === 2) {
+        return `¡Excelente! Ahora estamos en la pantalla de confirmación de la transferencia. Revisá que el destinatario sea "Juan Pérez" y el monto sea de $5.000. Luego, tocá el botón rojo "Confirmar transferencia" de abajo.`;
+      } else if (practiceStep === 3) {
+        return `¡Brillante! La transferencia simulada se realizó con éxito y no usaste dinero real. Ahora tocá el botón verde "Finalizar" para terminar este paso.`;
+      }
+    } else if (practicePhase === 'free') {
+      if (inactivitySeconds >= 40) {
+        if (practiceStep === 1) {
+          return `Ayuda de Coco: Buscá en la parte superior el acceso rápido de "Transferir dinero" (el primer botón con flechas) y tocalo.`;
+        } else if (practiceStep === 2) {
+          return `Ayuda de Coco: Tocá el botón rojo de abajo que dice "Confirmar transferencia" para completar la operación.`;
+        } else if (practiceStep === 3) {
+          return `Ayuda de Coco: Tocá el botón verde que dice "Finalizar" para salir de la pantalla de éxito.`;
+        }
+      } else {
+        if (practiceStep === 1) {
+          return `Modo Libre - Paso 1 de 3: Buscá el acceso rápido que dice "Transferir dinero" y tocalo. ¡Probá tu autonomía!`;
+        } else if (practiceStep === 2) {
+          return `Modo Libre - Paso 2 de 3: Confirmá los datos de Juan Pérez por $5.000 y tocá el botón rojo "Confirmar transferencia". ¡Podés hacerlo solo/a!`;
+        } else if (practiceStep === 3) {
+          return `Modo Libre - Paso 3 de 3: ¡Casi listo! Tocá el botón "Finalizar" para completar la práctica.`;
+        }
+      }
+    }
+    return '';
+  }, [practicePhase, practiceStep, inactivitySeconds, userProfile.name]);
 
   // --- AI Quiz / Recap States ---
   const [quizStep, setQuizStep] = useState(0); // 0 = Intro, 1 = Pregunta 1, 2 = Pregunta 2, 3 = Éxito final
@@ -272,42 +305,33 @@ function App() {
     };
   }, [activeView, practicePhase, practiceStep]);
 
-  // Speak hint automatically at 40s if voice is enabled and user is in Free Mode
+  // Open explanation overlay automatically at 40s if user is inactive in Free Mode
   useEffect(() => {
-    if (inactivitySeconds === 40 && voiceEnabled && practicePhase === 'free') {
-      let hintText = '';
-      if (practiceStep === 1) {
-        hintText = "Para pagar el gas, buscá abajo en la sección de 'Servicios por vencer' la tarjeta de 'Metrogas' y tocá el botón 'Pagar'.";
-      } else if (practiceStep === 2) {
-        hintText = "Para completar el pago, tocá el botón rojo abajo que dice 'Confirmar pago'.";
-      } else if (practiceStep === 3) {
-        hintText = "Ya se realizó el pago. Para terminar, tocá el botón verde que dice 'Finalizar'.";
-      }
-      if (hintText) speakText(hintText, true);
+    if (inactivitySeconds === 40 && practicePhase === 'free') {
+      Promise.resolve().then(() => {
+        setShowExplanationOverlay(true);
+      });
     }
-  }, [inactivitySeconds, voiceEnabled, practicePhase, practiceStep, speakText]);
+  }, [inactivitySeconds, practicePhase]);
 
-  // Voice narration for Guided Steps
+  // Voice narration for practice overlay (both guided and free steps)
   useEffect(() => {
-    if (!voiceEnabled || activeView !== 'simulador-mp' || practicePhase !== 'guided') return;
+    if (!voiceEnabled || activeView !== 'simulador-mp' || !showExplanationOverlay) return;
     
-    if (practiceStep === 1) {
-      speakText("Paso uno. Buscá abajo en la sección de 'Servicios por vencer' la tarjeta de 'Metrogas' y tocá el botón 'Pagar' para comenzar.");
-    } else if (practiceStep === 2) {
-      speakText("Paso dos. Revisá los datos del servicio Metrogas por un monto de 3.200 pesos y tocá el botón rojo de abajo que dice 'Confirmar pago'.");
-    } else if (practiceStep === 3) {
-      speakText("Paso tres. El pago fue exitoso y tenés el comprobante en pantalla. Tocá el botón verde 'Finalizar' para terminar.");
+    const text = getAssistantText();
+    if (text) {
+      speakText(text, true);
     }
-  }, [practiceStep, practicePhase, voiceEnabled, activeView, speakText]);
+  }, [showExplanationOverlay, getAssistantText, voiceEnabled, activeView, speakText]);
 
   // Voice narration for context and confirmation screens
   useEffect(() => {
     if (!voiceEnabled || activeView !== 'simulador-mp') return;
     
     if (practicePhase === 'context') {
-      speakText("Pantalla de preparación. Vas a practicar pagar la factura de gas. Cuando estés listo, tocá el botón grande de abajo que dice 'Empezar'.");
+      speakText("Pantalla de preparación. Vas a practicar transferir dinero. Cuando estés listo, tocá el botón grande de abajo que dice 'Empezar'.");
     } else if (practicePhase === 'confirmation') {
-      speakText("¡Felicitaciones! Has completado la práctica. Ya sabés pagar el gas desde tu celular. Tocá el botón 'Seguir' para continuar.");
+      speakText("¡Felicitaciones! Has completado la práctica. Ya sabés transferir dinero desde tu celular. Tocá el botón 'Seguir' para continuar.");
     }
   }, [practicePhase, voiceEnabled, activeView, speakText]);
 
@@ -328,7 +352,7 @@ function App() {
 
   // Spaced Repetition calculation - Pure state update
   useEffect(() => {
-    const lastCompletedAt = localStorage.getItem('chichin_gas_practice_completed_at');
+    const lastCompletedAt = localStorage.getItem('chichin_transfer_practice_completed_at');
     const retestStatus = localStorage.getItem('chichin_retest_status') || 'pending';
     let nextValue = false;
     if (lastCompletedAt && retestStatus === 'pending') {
@@ -566,7 +590,7 @@ function App() {
                 <span className="badge badge-gold" style={{ marginBottom: '6px' }}>Reto del día</span>
                 <h3 style={{ color: '#92400E', margin: '0 0 6px 0', fontSize: '1.2rem' }}>Repetición Espaciada</h3>
                 <p style={{ color: '#78350F', fontWeight: 500, fontSize: '0.95rem', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  ¡Hola {userProfile.name}! Hace 3 días aprendiste a pagar el gas. ¿Te animás a intentar pagarlo de nuevo en <strong>Modo Libre</strong> (sin ayuda) para ver si te acordás?
+                  ¡Hola {userProfile.name}! Hace 3 días aprendiste a transferir dinero. ¿Te animás a intentar transferirlo de nuevo en <strong>Modo Libre</strong> (sin ayuda) para ver si te acordás?
                 </p>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <button 
@@ -579,6 +603,7 @@ function App() {
                       setPracticeStep(1);
                       setIncorrectTapsCount(0);
                       setInactivitySeconds(0);
+                      setShowExplanationOverlay(true);
                       setActiveView('simulador-mp');
                     }}
                   >
@@ -705,7 +730,7 @@ function App() {
               className="btn btn-outline" 
               style={{ width: 'auto', minHeight: '36px', height: '36px', padding: '0 12px', fontSize: '0.8rem', backgroundColor: '#fff' }}
               onClick={() => {
-                localStorage.setItem('chichin_gas_practice_completed_at', (Date.now() - 3 * 24 * 60 * 60 * 1000).toString());
+                localStorage.setItem('chichin_transfer_practice_completed_at', (Date.now() - 3 * 24 * 60 * 60 * 1000).toString());
                 localStorage.setItem('chichin_retest_status', 'pending');
                 setSimulatedDaysPassed(3);
                 playSound('success');
@@ -718,7 +743,7 @@ function App() {
               className="btn btn-outline" 
               style={{ width: 'auto', minHeight: '36px', height: '36px', padding: '0 12px', fontSize: '0.8rem', color: '#c8102e', borderColor: '#c8102e', backgroundColor: '#fff' }}
               onClick={() => {
-                localStorage.removeItem('chichin_gas_practice_completed_at');
+                localStorage.removeItem('chichin_transfer_practice_completed_at');
                 localStorage.removeItem('chichin_retest_status');
                 localStorage.removeItem('chichin_retest_history');
                 setSimulatedDaysPassed(0);
@@ -773,50 +798,68 @@ function App() {
     );
   };
 
-  const renderCocoAssistant = () => {
-    let assistantText = '';
-    
-    if (practicePhase === 'guided') {
-      if (practiceStep === 1) {
-        assistantText = `¡Hola ${userProfile.name}! Vamos a aprender a pagar la factura del gas de forma segura. Primero, buscá abajo en la sección de "Servicios por vencer" la tarjeta de "Metrogas" y tocá el botón "Pagar".`;
-      } else if (practiceStep === 2) {
-        assistantText = `¡Excelente! Ahora estamos en la pantalla de confirmación. Revisá que los datos de Metrogas y el monto de $3.200 sean correctos. Luego, tocá el botón rojo "Confirmar pago" de abajo.`;
-      } else if (practiceStep === 3) {
-        assistantText = `¡Brillante! El pago simulado fue realizado con éxito y no usaste dinero real. Ahora tocá el botón verde "Finalizar" para terminar este paso.`;
-      }
-    } else if (practicePhase === 'free') {
-      if (inactivitySeconds >= 40) {
-        if (practiceStep === 1) {
-          assistantText = `Ayuda de Coco: Buscá abajo en "Servicios por vencer" la tarjeta de "Metrogas" y tocá el botón "Pagar" para iniciar el pago.`;
-        } else if (practiceStep === 2) {
-          assistantText = `Ayuda de Coco: Tocá el botón rojo de abajo que dice "Confirmar pago" para completar la operación.`;
-        } else if (practiceStep === 3) {
-          assistantText = `Ayuda de Coco: Tocá el botón verde que dice "Finalizar" para salir de la pantalla de éxito.`;
-        }
-      } else {
-        assistantText = `Modo Libre: Pagá la factura del gas (Metrogas) sin ayuda de flechas ni guías. ¡Probá tu autonomía!`;
-      }
-    }
+  const renderExplanationOverlay = () => {
+    const text = getAssistantText();
+    if (!text) return null;
 
-    if (!assistantText) return null;
+    const stepTitles = {
+      1: "Paso 1 de 3: Iniciar transferencia",
+      2: "Paso 2 de 3: Confirmar datos",
+      3: "Paso 3 de 3: Comprobante de transferencia"
+    };
 
     return (
-      <div className="assistant-bubble" style={{ borderLeftWidth: '4px', position: 'relative', borderLeftColor: 'var(--brand-primary)' }}>
-        <div className="assistant-avatar">🦉</div>
-        <div style={{ flex: 1, paddingRight: '48px' }}>
-          <p className="assistant-text" style={{ marginTop: '4px', fontSize: '1.05rem' }}>
-            {assistantText}
+      <div className="explanation-overlay fade-in" onClick={(e) => e.stopPropagation()}>
+        <div className="explanation-card">
+          <div className="explanation-avatar">🦉</div>
+          <h3 className="explanation-step-title">{stepTitles[practiceStep]}</h3>
+          
+          <p className="explanation-text-content">
+            {text}
           </p>
+
+          <div className="explanation-actions">
+            <button 
+              className={`btn-listen-icon ${currentSpeakingText === text ? 'speaking' : ''}`} 
+              onClick={(e) => { e.stopPropagation(); speakText(text, true); }}
+              title="Escuchar explicación de Coco"
+              aria-label="Escuchar explicación de Coco"
+            >
+              {currentSpeakingText === text ? <VolumeX size={24} /> : <Volume2 size={24} />}
+            </button>
+
+            <button 
+              className="btn btn-primary"
+              style={{ flex: 1, minHeight: '48px' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                playSound('click');
+                setShowExplanationOverlay(false);
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                setCurrentSpeakingText(null);
+              }}
+            >
+              Entendido, ver pantalla
+            </button>
+          </div>
+
+          <button
+            className="btn btn-outline"
+            style={{ marginTop: '12px', minHeight: '40px', height: '40px', padding: '0' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              playSound('click');
+              setPracticePhase('context');
+              setPracticeStep(1);
+              setIncorrectTapsCount(0);
+              setInactivitySeconds(0);
+              setIsRetest(false);
+              handleNav('home');
+            }}
+          >
+            🚪 Salir de la práctica
+          </button>
         </div>
-        <button 
-          className={`btn-listen-icon ${currentSpeakingText === assistantText ? 'speaking' : ''}`} 
-          style={{ position: 'absolute', right: '16px', top: '16px', width: '40px', height: '40px' }}
-          onClick={(e) => { e.stopPropagation(); speakText(assistantText, true); }}
-          title="Escuchar explicación de Coco"
-          aria-label="Escuchar explicación de Coco"
-        >
-          {currentSpeakingText === assistantText ? <VolumeX size={20} /> : <Volume2 size={20} />}
-        </button>
       </div>
     );
   };
@@ -838,12 +881,12 @@ function App() {
         </div>
 
         <div className="card fade-in" style={{ padding: '32px 24px', border: '1.5px solid var(--border-color)', backgroundColor: '#FFFFFF', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', textAlign: 'center' }}>
-          <span style={{ fontSize: '64px' }}>🔥</span>
+          <span style={{ fontSize: '64px' }}>💸</span>
           <h2 style={{ fontSize: 'calc(1.6rem * var(--font-multiplier))', fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>
-            Práctica: Pagar el Gas
+            Práctica: Transferir Dinero
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontWeight: 500, fontSize: 'calc(1.05rem * var(--font-multiplier))', lineHeight: 1.5, margin: 0 }}>
-            Vas a practicar cómo pagar tu factura de <strong>Metrogas</strong> desde la aplicación de Supervielle de manera 100% segura.
+            Vas a practicar cómo enviar dinero a un contacto de forma 100% segura desde la aplicación de Supervielle.
           </p>
           
           <div className="scam-warning-card" style={{ width: '100%', borderStyle: 'dashed', marginTop: '10px', marginBottom: '10px' }}>
@@ -861,6 +904,7 @@ function App() {
               setPracticeStep(1);
               setIncorrectTapsCount(0);
               setInactivitySeconds(0);
+              setShowExplanationOverlay(true);
             }}
           >
             <Play size={20} fill="white" /> Empezar
@@ -879,7 +923,7 @@ function App() {
             ¡Paso a paso guiado completado!
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontWeight: 500, fontSize: 'calc(1.05rem * var(--font-multiplier))', lineHeight: 1.5, margin: 0 }}>
-            ¡Muy bien hecho! Hiciste el pago de gas siguiendo la guía. Ahora llegó el momento del verdadero desafío: <strong>hacerlo vos solo/a en Modo Libre</strong>, sin flechas ni guías de Coco.
+            ¡Muy bien hecho! Hiciste la transferencia siguiendo la guía. Ahora llegó el momento del verdadero desafío: <strong>hacerlo vos solo/a en Modo Libre</strong>, sin flechas ni guías de Coco.
           </p>
 
           <button
@@ -891,6 +935,7 @@ function App() {
               setPracticeStep(1);
               setIncorrectTapsCount(0);
               setInactivitySeconds(0);
+              setShowExplanationOverlay(true);
             }}
           >
             🚀 Comenzar Modo Libre
@@ -914,7 +959,7 @@ function App() {
           
           <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px', padding: '16px', width: '100%' }}>
             <p style={{ fontWeight: 500, fontSize: '1.15rem', color: '#166534', margin: 0 }}>
-              Ya sabés pagar el gas desde tu celular.
+              Ya sabés transferir dinero desde tu celular.
             </p>
           </div>
 
@@ -925,7 +970,7 @@ function App() {
               </h4>
               {isRetestSuccess ? (
                 <p className="text-sm" style={{ color: '#475569', lineHeight: 1.5, margin: 0 }}>
-                  ¡Espectacular! Completaste el retest a los 3 días solo/a y casi sin errores. Tu cerebro guardó muy bien la ruta del pago del gas. <strong>¡El aprendizaje se ha consolidado con éxito!</strong>
+                  ¡Espectacular! Completaste el retest a los 3 días solo/a y casi sin errores. Tu cerebro guardó muy bien la ruta para transferir dinero. <strong>¡El aprendizaje se ha consolidado con éxito!</strong>
                 </p>
               ) : (
                 <p className="text-sm" style={{ color: '#475569', lineHeight: 1.5, margin: 0 }}>
@@ -946,13 +991,13 @@ function App() {
               className="btn btn-primary"
               onClick={() => {
                 playSound('click');
-                localStorage.setItem('chichin_gas_practice_completed_at', Date.now().toString());
+                localStorage.setItem('chichin_transfer_practice_completed_at', Date.now().toString());
                 localStorage.setItem('chichin_retest_status', isRetest ? (isRetestSuccess ? 'consolidated' : 'needs_work') : 'pending');
                 
                 setUserProfile(prev => ({
                   ...prev,
                   points: prev.points + 60,
-                  medals: prev.medals.includes('Servicio Pagado 🏆') ? prev.medals : ['Servicio Pagado 🏆', ...prev.medals]
+                  medals: prev.medals.includes('Transferencia Exitosa 🏆') ? prev.medals : ['Transferencia Exitosa 🏆', ...prev.medals]
                 }));
 
                 setPracticePhase('context');
@@ -996,17 +1041,16 @@ function App() {
       <div 
         className="phone-container flex flex-col relative"
         style={{
-          width: '375px',
-          height: '740px',
+          width: '100%',
+          maxWidth: '480px',
+          height: 'calc(100vh - var(--header-height))',
           backgroundColor: '#F8F9FA',
-          borderRadius: '36px',
-          overflow: 'hidden',
           position: 'relative',
-          border: '8px solid #333',
-          boxShadow: '0 15px 30px rgba(0,0,0,0.2)',
           display: 'flex',
           flexDirection: 'column',
-          margin: '0 auto'
+          margin: '0 auto',
+          boxShadow: '0 0 20px rgba(0,0,0,0.05)',
+          overflow: 'hidden'
         }}
         onMouseDown={handleSimulatorInteraction}
         onTouchStart={handleSimulatorInteraction}
@@ -1018,7 +1062,7 @@ function App() {
           <>
             {/* Header Section */}
             <header 
-              className="pt-10 pb-3 px-5 bg-[#F8F9FA] sticky top-0 z-10 border-b border-gray-100"
+              className="pt-5 pb-3 px-5 bg-[#F8F9FA] sticky top-0 z-10 border-b border-gray-100"
               style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
             >
               <div className="flex justify-between items-center mb-3">
@@ -1084,21 +1128,48 @@ function App() {
                   { icon: 'fa-arrow-trend-up', label: 'Inversión\nRápida' },
                   { icon: 'fa-mobile-screen', label: 'Hacer una\nrecarga' },
                   { icon: 'fa-plus', label: 'Mostrar\nmás' }
-                ].map((act, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center relative mb-1.5 border border-gray-100" style={{ boxShadow: '0 2px 5px rgba(0,0,0,0.04)', cursor: 'default' }}>
-                      <i className={`fa-solid ${act.icon} text-[#B71C35] text-lg`}></i>
-                      {act.badge && (
-                        <span className="absolute -bottom-1.5 bg-green-100 text-green-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-white">
-                          {act.badge}
-                        </span>
-                      )}
+                ].map((act, i) => {
+                  const isTransfer = act.label === 'Transferir\ndinero';
+                  return (
+                    <div 
+                      key={i} 
+                      className="flex flex-col items-center"
+                      style={{ position: 'relative', cursor: isTransfer ? 'pointer' : 'default' }}
+                      onClick={(e) => {
+                        if (isTransfer) {
+                          e.stopPropagation();
+                          playSound('click');
+                          setPracticeStep(2);
+                          setInactivitySeconds(0);
+                          setShowExplanationOverlay(true);
+                        }
+                      }}
+                    >
+                      {isTransfer && practicePhase === 'guided' && practiceStep === 1 && renderArrow({ top: '-44px', left: '50%', transform: 'translateX(-50%)' })}
+                      
+                      <div 
+                        className={`w-12 h-12 bg-white rounded-2xl flex items-center justify-center relative mb-1.5 border ${isTransfer && practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : 'border-gray-100'}`} 
+                        style={{ 
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.04)',
+                          opacity: isDimmed(1, isTransfer) ? 0.3 : 1
+                        }}
+                      >
+                        <i className={`fa-solid ${act.icon} text-[#B71C35] text-lg`}></i>
+                        {act.badge && (
+                          <span className="absolute -bottom-1.5 bg-green-100 text-green-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-white">
+                            {act.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span 
+                        className="text-[10px] text-center text-gray-500 leading-tight whitespace-pre-line"
+                        style={{ opacity: isDimmed(1, isTransfer) ? 0.3 : 1 }}
+                      >
+                        {act.label}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-center text-gray-500 leading-tight whitespace-pre-line">
-                      {act.label}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </section>
 
               {/* Recommended Section */}
@@ -1127,21 +1198,13 @@ function App() {
                   Servicios por vencer
                 </h3>
                 
-                <div style={{ position: 'relative' }}>
-                  {practicePhase === 'guided' && practiceStep === 1 && renderArrow({ top: '-42px', left: '50%', transform: 'translateX(-50%)' })}
-                  
+                <div>
                   <div 
-                    className={`bg-white rounded-2xl p-3.5 border border-gray-100 flex justify-between items-center ${practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
+                    className="bg-white rounded-2xl p-3.5 border border-gray-100 flex justify-between items-center"
                     style={{ 
                       boxShadow: '0 4px 10px rgba(0,0,0,0.03)',
-                      opacity: isDimmed(1, true) ? 0.3 : 1,
-                      cursor: 'pointer'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playSound('click');
-                      setPracticeStep(2);
-                      setInactivitySeconds(0);
+                      opacity: isDimmed(1, false) ? 0.3 : 1,
+                      cursor: 'default'
                     }}
                   >
                     <div className="flex items-center space-x-3">
@@ -1155,7 +1218,7 @@ function App() {
                     </div>
                     <div className="text-right flex items-center space-x-2">
                       <span className="text-sm font-bold text-gray-800">$3.200</span>
-                      <button className="bg-[#B71C35] text-white text-[10px] font-bold px-3 py-1.5 rounded-full hover:bg-[#801426] transition">
+                      <button className="bg-[#B71C35] text-white text-[10px] font-bold px-3 py-1.5 rounded-full opacity-60 cursor-default" style={{ pointerEvents: 'none' }}>
                         Pagar
                       </button>
                     </div>
@@ -1167,7 +1230,7 @@ function App() {
 
             {/* Bottom Navigation */}
             <nav 
-              className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-5 py-2 flex justify-between items-center rounded-b-[36px] z-20" 
+              className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-5 py-2 flex justify-between items-center z-20" 
               style={{ boxShadow: '0 -5px 15px rgba(0,0,0,0.02)', opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
             >
               <button className="flex flex-col items-center w-12 text-[#B71C35]">
@@ -1203,7 +1266,7 @@ function App() {
           <div className="flex flex-col h-full bg-[#F5F6F8]">
             {/* Nav Header */}
             <div 
-              className="pt-10 pb-3 px-5 bg-white border-b border-gray-150 flex items-center space-x-3"
+              className="pt-5 pb-3 px-5 bg-white border-b border-gray-150 flex items-center space-x-3"
               style={{ opacity: isDimmed(2, false) ? 0.3 : 1, pointerEvents: isDimmed(2, false) ? 'none' : 'auto' }}
             >
               <button 
@@ -1218,7 +1281,7 @@ function App() {
               >
                 <ArrowLeft size={20} />
               </button>
-              <span className="text-gray-800 font-bold text-lg">Confirmar Pago</span>
+              <span className="text-gray-800 font-bold text-lg">Confirmar Transferencia</span>
             </div>
 
             {/* Main Area */}
@@ -1244,30 +1307,30 @@ function App() {
                 className="bg-white rounded-2xl p-4 border border-gray-100 mb-6"
                 style={{ opacity: isDimmed(2, false) ? 0.3 : 1 }}
               >
-                <p className="text-xs text-gray-400 font-medium mb-3">Detalle del servicio</p>
+                <p className="text-xs text-gray-400 font-medium mb-3">Detalle de la transferencia</p>
                 
                 <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Empresa</span>
-                  <span className="text-sm font-bold text-gray-800">Metrogas</span>
+                  <span className="text-sm text-gray-500">Destinatario</span>
+                  <span className="text-sm font-bold text-gray-800">Juan Pérez</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Rubro</span>
-                  <span className="text-sm font-bold text-gray-800">Gas Natural</span>
+                  <span className="text-sm text-gray-500">Alias / CBU</span>
+                  <span className="text-sm font-bold text-gray-800">juan.perez.super</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Nro. de Factura</span>
-                  <span className="text-sm font-bold text-gray-800">9182739182</span>
+                  <span className="text-sm text-gray-500">Entidad</span>
+                  <span className="text-sm font-bold text-gray-800">Banco Supervielle</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-sm text-gray-500">Vencimiento</span>
-                  <span className="text-sm font-bold text-gray-800 text-[#B71C35]">Vence Hoy</span>
+                  <span className="text-sm text-gray-500">Concepto</span>
+                  <span className="text-sm font-bold text-gray-800">Varios</span>
                 </div>
 
                 <hr className="my-4 border-gray-100" />
 
                 <div className="flex justify-between items-baseline">
-                  <span className="text-base font-bold text-gray-800">Total a pagar</span>
-                  <span className="text-2xl font-bold text-[#B71C35]">$3.200,00</span>
+                  <span className="text-base font-bold text-gray-800">Monto a enviar</span>
+                  <span className="text-2xl font-bold text-[#B71C35]">$5.000,00</span>
                 </div>
               </div>
 
@@ -1290,9 +1353,10 @@ function App() {
                     playSound('success');
                     setPracticeStep(3);
                     setInactivitySeconds(0);
+                    setShowExplanationOverlay(true);
                   }}
                 >
-                  Confirmar pago
+                  Confirmar transferencia
                 </button>
               </div>
 
@@ -1310,21 +1374,21 @@ function App() {
                 <i className="fa-solid fa-check text-2xl"></i>
               </div>
 
-              <h3 className="text-lg font-bold text-gray-800 mb-2">¡Pago Realizado!</h3>
-              <p className="text-xs text-gray-500 mb-6 font-medium">Tu comprobante de pago ha sido generado.</p>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">¡Transferencia Realizada!</h3>
+              <p className="text-xs text-gray-500 mb-6 font-medium">Se envió el dinero con éxito.</p>
 
               <div className="bg-[#F8F9FA] rounded-2xl p-4 border border-gray-100 text-left mb-6">
                 <div className="flex justify-between py-1.5">
-                  <span className="text-xs text-gray-500">Servicio</span>
-                  <span className="text-xs font-bold text-gray-800">Metrogas</span>
+                  <span className="text-xs text-gray-500">Destinatario</span>
+                  <span className="text-xs font-bold text-gray-800">Juan Pérez</span>
                 </div>
                 <div className="flex justify-between py-1.5">
-                  <span className="text-xs text-gray-500">Monto Debitado</span>
-                  <span className="text-xs font-bold text-gray-800">$3.200,00</span>
+                  <span className="text-xs text-gray-500">Monto Enviado</span>
+                  <span className="text-xs font-bold text-gray-800">$5.000,00</span>
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-xs text-gray-500">Comprobante Nro</span>
-                  <span className="text-xs font-bold text-gray-800">#98765432</span>
+                  <span className="text-xs font-bold text-gray-800">#10293847</span>
                 </div>
               </div>
             </div>
@@ -1357,6 +1421,22 @@ function App() {
           </div>
         )}
 
+        {/* Floating Coco Helper Button */}
+        {!showExplanationOverlay && (
+          <button
+            className={`floating-coco-btn ${practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              playSound('click');
+              setShowExplanationOverlay(true);
+            }}
+            title="Ver explicación de Coco"
+            aria-label="Ver explicación de Coco"
+          >
+            🦉
+            <span className="floating-coco-tooltip">Ayuda</span>
+          </button>
+        )}
       </div>
     );
   };
@@ -1373,50 +1453,17 @@ function App() {
     }
 
     return (
-      <div className="container" style={{ paddingBottom: '100px' }}>
-        <div className="sandbox-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#e0e0e0', padding: '24px 12px', borderRadius: '24px' }}>
-          
-          <div className="sandbox-banner" style={{ width: '100%', maxWidth: '375px', backgroundColor: '#333', color: '#fff', fontSize: '0.85rem' }}>
-            <ShieldAlert size={16} /> ZONA DE PRÁCTICA - DINERO FICTICIO
-          </div>
-
-          <div style={{ width: '100%', maxWidth: '375px', marginBottom: '16px' }}>
-            {renderCocoAssistant()}
-          </div>
-
-          <div style={{ width: '100%', maxWidth: '375px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <button 
-              className="btn btn-outline"
-              style={{ 
-                width: 'auto', 
-                minHeight: '36px', 
-                height: '36px',
-                padding: '4px 14px', 
-                fontSize: '0.85rem',
-                borderColor: 'var(--brand-primary)',
-                borderWidth: '1.5px',
-                borderRadius: '8px'
-              }}
-              onClick={() => {
-                playSound('click');
-                setPracticePhase('context');
-                setPracticeStep(1);
-                setIncorrectTapsCount(0);
-                setInactivitySeconds(0);
-                setIsRetest(false);
-                handleNav('home');
-              }}
-            >
-              🚪 Salir del simulador
-            </button>
-            <span style={{ fontWeight: 500, fontSize: '0.85rem', color: '#15803D' }}>
-              Sin riesgo real
-            </span>
-          </div>
-
-          {renderSupervielleApp()}
-
-        </div>
+      <div 
+        style={{ 
+          position: 'relative', 
+          width: '100%', 
+          height: 'calc(100vh - var(--header-height))',
+          backgroundColor: '#F8F9FA',
+          overflow: 'hidden'
+        }}
+      >
+        {renderSupervielleApp()}
+        {showExplanationOverlay && renderExplanationOverlay()}
       </div>
     );
   };
@@ -1661,10 +1708,10 @@ function App() {
         emoji: '💸',
         description: 'Completaste tu primera transferencia simulada con éxito.'
       },
-      'Servicio Pagado 🏆': {
-        title: 'Pago de servicio',
-        emoji: '💵',
-        description: 'Escaneaste y pagaste una factura simulada correctamente.'
+      'Transferencia Exitosa 🏆': {
+        title: 'Transferencia exitosa',
+        emoji: '💸',
+        description: 'Completaste la transferencia simulada de forma 100% segura.'
       },
       'Escudo Digital 🛡️': {
         title: 'Protectora digital',
@@ -1812,7 +1859,7 @@ function App() {
       {renderHeader()}
 
       {/* Active Navigation/View Content */}
-      <main style={{ flex: 1, paddingBottom: '100px' }}>
+      <main style={{ flex: 1, paddingBottom: activeView === 'simulador-mp' ? '0' : '100px' }}>
         {activeView === 'home' && renderHome()}
         {activeView === 'simulador-mp' && renderSimuladorMP()}
         {activeView === 'quiz' && quizStep === 3 ? renderQuizSuccess() : activeView === 'quiz' ? renderQuiz() : null}
@@ -1820,7 +1867,7 @@ function App() {
       </main>
 
       {/* Persistent Emergency Help Panel */}
-      {renderHelpFooter()}
+      {activeView !== 'simulador-mp' && renderHelpFooter()}
     </div>
   );
 }
@@ -2015,9 +2062,8 @@ function DiagnosticScreen({ userName, logoImg, playSound, onComplete }) {
       setSelected(null);
       setStep(step + 1);
     } else {
-      // All done
+      // Go to the explanation page for bank evaluators
       setStep(4);
-      setTimeout(() => onComplete(newAnswers), 1200);
     }
   };
 
@@ -2061,8 +2107,91 @@ function DiagnosticScreen({ userName, logoImg, playSound, onComplete }) {
     );
   }
 
-  // ---- DONE / TRANSITION PAGE ----
+  // ---- BANK EVALUATORS EXPLANATION PAGE (step === 4) ----
   if (step === 4) {
+    const handleAcceptExplanation = () => {
+      playSound('success');
+      setStep(5);
+      setTimeout(() => onComplete(answers), 1500);
+    };
+
+    return (
+      <div className="container fade-in" style={{ minHeight: '85vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingTop: '20px', paddingBottom: '20px' }}>
+        <div className="card" style={{ 
+          width: '100%', 
+          padding: '32px 24px', 
+          border: '1.5px solid var(--border-color)', 
+          backgroundColor: '#FFFFFF', 
+          borderRadius: '16px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '20px',
+          position: 'relative'
+        }}>
+          
+          {/* Badge for Evaluators */}
+          <div style={{
+            backgroundColor: 'var(--brand-primary-light)',
+            color: 'var(--brand-primary)',
+            padding: '6px 14px',
+            borderRadius: '99px',
+            fontSize: 'calc(0.8rem * var(--font-multiplier))',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            border: '1.5px solid var(--brand-primary)'
+          }}>
+            Nota de Desarrollo & Arquitectura
+          </div>
+
+          <img src={logoImg} alt="Logo Chichín" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <h2 style={{ fontSize: 'calc(1.35rem * var(--font-multiplier))', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '16px', lineHeight: 1.3 }}>
+              ¿Cómo funciona Chichín detrás de escena?
+            </h2>
+            
+            <div style={{ 
+              backgroundColor: 'var(--sandbox-bg)', 
+              border: '1.5px solid var(--sandbox-border)', 
+              borderRadius: '12px', 
+              padding: '18px', 
+              textAlign: 'left',
+              marginBottom: '20px'
+            }}>
+              <p style={{ fontSize: 'calc(0.95rem * var(--font-multiplier))', color: 'var(--sandbox-border)', fontWeight: 500, marginBottom: '10px' }}>
+                💡 <strong>Mensaje para el equipo evaluador:</strong>
+              </p>
+              <p style={{ fontSize: 'calc(0.9rem * var(--font-multiplier))', color: 'var(--text-body)', lineHeight: 1.55, marginBottom: '12px' }}>
+                Las 3 preguntas de diagnóstico anteriores se utilizarán para <strong>ordenar y personalizar el aprendizaje del adulto mayor</strong>. Esto evita enseñarle contenidos que ya sabe y eleva el grado de personalización de la plataforma.
+              </p>
+              <p style={{ fontSize: 'calc(0.9rem * var(--font-multiplier))', color: 'var(--text-body)', lineHeight: 1.55 }}>
+                Esta experiencia está apalancada por un <strong>algoritmo interconectado</strong> y <strong>modelos de Inteligencia Artificial</strong>, los cuales adaptan y estructuran la ruta formativa de forma dinámica según las necesidades identificadas.
+              </p>
+            </div>
+          </div>
+
+          <button
+            className="btn btn-primary"
+            style={{ 
+              minHeight: '60px', 
+              fontSize: 'calc(1.15rem * var(--font-multiplier))', 
+              borderRadius: '12px', 
+              fontWeight: 600,
+              width: '100%'
+            }}
+            onClick={handleAcceptExplanation}
+          >
+            Entiendo ➜
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- DONE / TRANSITION PAGE ----
+  if (step === 5) {
     return (
       <div className="container fade-in" style={{ minHeight: '85vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <div className="card" style={{ width: '100%', padding: '40px 24px', border: '1.5px solid var(--border-color)', backgroundColor: '#FFFFFF', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', textAlign: 'center' }}>
@@ -2084,11 +2213,11 @@ function DiagnosticScreen({ userName, logoImg, playSound, onComplete }) {
 
         {/* Progress header */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: 'calc(0.9rem * var(--font-multiplier))', color: 'var(--text-secondary)', fontWeight: 500 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
+            <span style={{ fontSize: 'calc(0.85rem * var(--font-multiplier))', color: 'var(--text-secondary)', fontWeight: 500 }}>
               Pregunta {step} de {totalSteps}
             </span>
-            <span style={{ fontSize: 'calc(0.9rem * var(--font-multiplier))', color: 'var(--brand-primary)', fontWeight: 700 }}>
+            <span style={{ fontSize: 'calc(1.1rem * var(--font-multiplier))', color: 'var(--brand-primary)', fontWeight: 500, lineHeight: 1.3 }}>
               {currentQ.eje}
             </span>
           </div>

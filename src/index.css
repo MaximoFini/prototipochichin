@@ -825,3 +825,160 @@ body.high-contrast .btn-listen-icon.speaking {
   to   { transform: translateY(-6px); }
 }
 
+/* ============================================================
+   EXPLANATION OVERLAY (Capas de Aprendizaje)
+   ============================================================ */
+.explanation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 150;
+  background-color: rgba(244, 244, 247, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+body.high-contrast .explanation-overlay {
+  background-color: rgba(0, 0, 0, 0.98) !important;
+  backdrop-filter: none;
+}
+
+.explanation-card {
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+body.high-contrast .explanation-card {
+  border: 2px solid #FFFFFF !important;
+  background-color: #0A0A0A !important;
+  box-shadow: none !important;
+}
+
+.explanation-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  background-color: var(--brand-primary-light);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+body.high-contrast .explanation-avatar {
+  background-color: #111111 !important;
+  color: #00E5FF !important;
+  border: 2px solid #00E5FF !important;
+}
+
+.explanation-step-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+body.high-contrast .explanation-step-title {
+  color: #FFFFFF !important;
+}
+
+.explanation-text-content {
+  font-size: 1.15rem;
+  color: var(--text-body);
+  line-height: 1.6;
+  font-weight: 400;
+  margin: 0;
+}
+
+body.high-contrast .explanation-text-content {
+  color: #FFFFFF !important;
+}
+
+.explanation-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   FLOATING COCO HELPER BUTTON
+   ============================================================ */
+.floating-coco-btn {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  z-index: 90;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--brand-primary);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 14px rgba(183, 28, 53, 0.25);
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+.floating-coco-btn:hover {
+  transform: scale(1.08);
+  background-color: var(--brand-primary-hover);
+}
+
+.floating-coco-btn:active {
+  transform: scale(0.95);
+}
+
+body.high-contrast .floating-coco-btn {
+  background-color: #FFE500 !important;
+  color: #000000 !important;
+  border: 2.5px solid #000000 !important;
+  box-shadow: none !important;
+}
+
+.floating-coco-btn::after {
+  content: 'Ayuda';
+  position: absolute;
+  top: -24px;
+  background-color: var(--text-primary);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.9;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+body.high-contrast .floating-coco-btn::after {
+  background-color: #000000 !important;
+  color: #FFE500 !important;
+  border: 1px solid #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+
