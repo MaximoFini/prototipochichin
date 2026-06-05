@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import './App.css';
 import logoImg from './assets/logosinfondochichin.png';
+import { situaciones } from './data/situaciones';
 
 
 // Synthetic sound generator using Web Audio API
@@ -75,9 +76,9 @@ const playSound = (type) => {
 
 function App() {
   // --- View States ---
-  // 'home', 'reserva', 'simulador-mp', 'quiz', 'logros'
+  // 'home', 'reserva', 'simulador-mp', 'quiz', 'logros', 'escudo'
   const [activeView, setActiveView] = useState('home');
-  
+
   // --- Accessibility States ---
   const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1.0); // 1.0 = Normal, 1.2 = Grande, 1.4 = Muy Grande
   const [highContrast, setHighContrast] = useState(false);
@@ -109,8 +110,6 @@ function App() {
     currentSpeakingTextRef.current = currentSpeakingText;
   }, [currentSpeakingText]);
 
-
-
   // --- Real Practice Simulator States (Pagar el Gas) ---
   // practicePhase: 'context' | 'guided' | 'free' | 'confirmation'
   const [practicePhase, setPracticePhase] = useState('context');
@@ -125,6 +124,122 @@ function App() {
   const [isRetestTime, setIsRetestTime] = useState(false);
   const [recipientInput, setRecipientInput] = useState('maxifinirp');
   const [amountInput, setAmountInput] = useState('1');
+
+  // --- Escudo Anti-estafas States ---
+  const [escudoStep, setEscudoStep] = useState('intro'); // 'intro', 'situacion', 'feedback', 'racha'
+  const [escudoStreak, setEscudoStreak] = useState(() => {
+    const saved = localStorage.getItem('chichin_escudo_streak');
+    return saved ? parseInt(saved) : 3; // Initial mock streak
+  });
+  const [escudoTotalSessions, setEscudoTotalSessions] = useState(() => {
+    const saved = localStorage.getItem('chichin_escudo_total_sessions');
+    return saved ? parseInt(saved) : 0;
+  });
+  const [escudoHistory, setEscudoHistory] = useState(() => {
+    const saved = localStorage.getItem('chichin_escudo_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [escudoSessionSituations, setEscudoSessionSituations] = useState([]);
+  const [escudoCurrentIndex, setEscudoCurrentIndex] = useState(0);
+  const [escudoResultState, setEscudoResultState] = useState(null); // 'correct' or 'incorrect'
+  const [escudoLastPracticedDate, setEscudoLastPracticedDate] = useState(() => {
+    return localStorage.getItem('chichin_escudo_last_practiced_date') || '';
+  });
+
+  const getLocalDateString = () => {
+    const d = new Date();
+    // Offset for Argentina (UTC-3)
+    const offset = -3;
+    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    const arDate = new Date(utc + (3600000 * offset));
+    const yyyy = arDate.getFullYear();
+    const mm = String(arDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(arDate.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const getEscudoLevel = (sessions) => {
+    if (sessions >= 6) return "Escudo Experto 🏆";
+    if (sessions >= 3) return "Escudo Activo 🛡️";
+    return "Escudo Básico 🔰";
+  };
+
+  const initializeEscudoSession = useCallback(() => {
+    // Pick 1 situation at random that hasn't been done yet
+    let available = situaciones.filter(s => !escudoHistory.includes(s.id));
+    if (available.length === 0) {
+      // If all are completed, reset history
+      available = situaciones;
+      setEscudoHistory([]);
+      localStorage.setItem('chichin_escudo_history', JSON.stringify([]));
+    }
+    const randomIndex = Math.floor(Math.random() * available.length);
+    const chosen = available[randomIndex];
+    setEscudoSessionSituations([chosen]);
+    setEscudoCurrentIndex(0);
+    setEscudoResultState(null);
+    setEscudoStep('intro');
+  }, [escudoHistory]);
+
+  const loadSecondSituation = useCallback(() => {
+    let available = situaciones.filter(s => !escudoHistory.includes(s.id) && !escudoSessionSituations.map(x => x.id).includes(s.id));
+    if (available.length === 0) {
+      available = situaciones.filter(s => !escudoSessionSituations.map(x => x.id).includes(s.id));
+    }
+    const randomIndex = Math.floor(Math.random() * available.length);
+    const chosen = available[randomIndex];
+    
+    setEscudoSessionSituations(prev => [...prev, chosen]);
+    setEscudoCurrentIndex(1);
+    setEscudoResultState(null);
+    setEscudoStep('situacion');
+  }, [escudoHistory, escudoSessionSituations]);
+
+  const completeEscudoSession = useCallback(() => {
+    // 1. Calculate new streak
+    const todayStr = getLocalDateString();
+    let newStreak = escudoStreak;
+    
+    if (escudoLastPracticedDate === todayStr) {
+      // Already practiced today, keep streak
+    } else {
+      // Find out if they practiced yesterday
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+      
+      if (escudoLastPracticedDate === yesterdayStr) {
+        newStreak += 1;
+      } else {
+        newStreak = 1; // reset
+      }
+    }
+    
+    // 2. Increment total completed sessions
+    const newSessionsCount = escudoTotalSessions + 1;
+    
+    // 3. Save states
+    setEscudoStreak(newStreak);
+    setEscudoTotalSessions(newSessionsCount);
+    setEscudoLastPracticedDate(todayStr);
+    
+    localStorage.setItem('chichin_escudo_streak', newStreak.toString());
+    localStorage.setItem('chichin_escudo_total_sessions', newSessionsCount.toString());
+    localStorage.setItem('chichin_escudo_last_practiced_date', todayStr);
+    
+    // Sync with userProfile streak
+    setUserProfile(prev => {
+      const updated = { ...prev, streak: newStreak };
+      localStorage.setItem('chichin_user_profile_streak', newStreak.toString());
+      return updated;
+    });
+    
+    // Play celebratory sound
+    playSound('medal');
+    
+    // 4. Navigate to racha
+    setEscudoStep('racha');
+  }, [escudoStreak, escudoLastPracticedDate, escudoTotalSessions]);
 
   const getAssistantText = useCallback(() => {
     if (practicePhase === 'guided') {
@@ -266,7 +381,7 @@ function App() {
   // Auto-scroll to top on view or step transitions
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeView, practiceStep, quizStep]);
+  }, [activeView, practiceStep, quizStep, escudoStep, escudoCurrentIndex]);
 
   // Voice narration upon changing views
   useEffect(() => {
@@ -282,6 +397,41 @@ function App() {
       speakText("Felicitaciones. Aquí podés ver todas las medallas que ganaste con tu esfuerzo.");
     }
   }, [activeView, voiceEnabled, speakText, userProfile.streak]);
+
+  // Voice narration for Escudo Anti-estafas steps
+  useEffect(() => {
+    if (!voiceEnabled || activeView !== 'escudo') return;
+
+    if (escudoStep === 'intro') {
+      const level = getEscudoLevel(escudoTotalSessions);
+      speakText(`Práctica de hoy del Escudo Anti-estafas. Llevás una racha de ${escudoStreak} días seguidos practicando y tu nivel actual es ${level}. Tocá el botón grande de abajo que dice Empezar para comenzar.`);
+    } else if (escudoStep === 'situacion') {
+      const sit = escudoSessionSituations[escudoCurrentIndex];
+      if (sit) {
+        let textToSpeak;
+        if (sit.categoria === 'llamada') {
+          textToSpeak = `Llamada telefónica simulada de ${sit.contenido.emisor}. Dice: ${sit.contenido.texto}. ¿Qué hacés vos?`;
+        } else if (sit.categoria === 'whatsapp') {
+          const msgs = sit.contenido.mensajes.map(m => m.texto).join(". ");
+          textToSpeak = `Mensaje de WhatsApp simulado de ${sit.contenido.remitente}. Dice: ${msgs}. ¿Qué hacés vos?`;
+        } else {
+          textToSpeak = `Mensaje de texto simulado de ${sit.contenido.remitente}. Dice: ${sit.contenido.texto}. ¿Qué hacés vos?`;
+        }
+        speakText(textToSpeak);
+      }
+    } else if (escudoStep === 'feedback') {
+      const sit = escudoSessionSituations[escudoCurrentIndex];
+      if (sit) {
+        const resultText = escudoResultState === 'correct' 
+          ? `¡Muy bien! ${sit.feedback_correcto}` 
+          : `Esta vez te engañaron. ${sit.feedback_incorrecto}`;
+        speakText(`${resultText}. La señal de alerta es: ${sit.red_flag_destacada}`);
+      }
+    } else if (escudoStep === 'racha') {
+      const level = getEscudoLevel(escudoTotalSessions);
+      speakText(`¡Felicitaciones! Completaste la práctica del día. Llevás una racha de ${escudoStreak} días seguidos. Tu nivel de escudo actual es ${level}. Tocá el botón Volver al inicio para terminar.`);
+    }
+  }, [activeView, escudoStep, escudoCurrentIndex, escudoSessionSituations, escudoResultState, voiceEnabled, speakText, escudoStreak, escudoTotalSessions]);
 
   // --- New Practice Simulator Timers and Voice Narrations ---
   const inactivityTimerRef = useRef(null);
@@ -378,6 +528,9 @@ function App() {
     setQuizResultState(null);
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setCurrentSpeakingText(null);
+    if (view === 'escudo') {
+      initializeEscudoSession();
+    }
   };
 
   const toggleContrast = () => {
@@ -691,19 +844,40 @@ function App() {
             <Play size={22} fill="white" /> ¡Entrar a practicar!
           </button>
         </div>
-        {/* Anti-Scam Widget */}
-        <div className="scam-warning-card" style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-            <ShieldAlert size={32} style={{ color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
+        {/* Anti-Scam Widget (Interactive) */}
+        <div 
+          className="card card-interactive escudo-home-card" 
+          style={{ 
+            marginBottom: '40px', 
+            border: '1.5px solid var(--brand-primary)',
+            backgroundColor: 'var(--brand-primary-light)'
+          }}
+          onClick={() => handleNav('escudo')}
+        >
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <ShieldAlert size={36} style={{ color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
             <div style={{ flex: 1 }}>
-              <h3 style={{ color: 'var(--text-primary)', marginBottom: '6px', fontSize: 'calc(1.1rem * var(--font-multiplier))' }}>Escudo anti-estafas Chichín</h3>
-              <p className="text-sm" style={{ fontWeight: 500, lineHeight: 1.55 }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                <span className="badge badge-gold">
+                  {getEscudoLevel(escudoTotalSessions)}
+                </span>
+                <span className="badge badge-green">
+                  🔥 {escudoStreak} días de racha
+                </span>
+              </div>
+              <h3 style={{ color: 'var(--text-primary)', marginBottom: '6px', fontSize: 'calc(1.15rem * var(--font-multiplier))' }}>
+                Escudo anti-estafas Chichín
+              </h3>
+              <p className="text-sm" style={{ fontWeight: 500, lineHeight: 1.55, color: 'var(--text-body)' }}>
                 Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: <strong>«No comparto mis claves»</strong> y cortá de inmediato.
               </p>
             </div>
             <button
               className={`btn-listen-icon ${currentSpeakingText === "Escudo anti-estafas Chichín. Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: «No comparto mis claves» y cortá de inmediato." ? 'speaking' : ''}`}
-              onClick={() => speakText("Escudo anti-estafas Chichín. Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: «No comparto mis claves» y cortá de inmediato.", true)}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                speakText("Escudo anti-estafas Chichín. Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: «No comparto mis claves» y cortá de inmediato.", true); 
+              }}
               title={currentSpeakingText === "Escudo anti-estafas Chichín. Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: «No comparto mis claves» y cortá de inmediato." ? "Detener audio" : "Escuchar escudo anti-estafas"}
               aria-label="Escuchar escudo anti-estafas"
               style={{ flexShrink: 0, alignSelf: 'center' }}
@@ -711,6 +885,13 @@ function App() {
               {currentSpeakingText === "Escudo anti-estafas Chichín. Ninguna persona buena te va a pedir tu contraseña por teléfono. Si te pasa, decí: «No comparto mis claves» y cortá de inmediato." ? <VolumeX size={24} /> : <Volume2 size={24} />}
             </button>
           </div>
+          <button 
+            className="btn btn-primary"
+            onClick={(e) => { e.stopPropagation(); handleNav('escudo'); }}
+            style={{ width: '100%', minHeight: '48px', fontSize: '1.05rem', fontWeight: 'bold' }}
+          >
+            🛡️ Practicar hoy
+          </button>
         </div>
 
         {/* Debug / Prototipo Tools */}
@@ -2151,12 +2332,475 @@ function App() {
         {activeView === 'simulador-mp' && renderSimuladorMP()}
         {activeView === 'quiz' && quizStep === 3 ? renderQuizSuccess() : activeView === 'quiz' ? renderQuiz() : null}
         {activeView === 'logros' && renderLogros()}
+        {activeView === 'escudo' && (
+          <EscudoView
+            escudoStep={escudoStep}
+            escudoStreak={escudoStreak}
+            escudoTotalSessions={escudoTotalSessions}
+            escudoSessionSituations={escudoSessionSituations}
+            escudoCurrentIndex={escudoCurrentIndex}
+            escudoResultState={escudoResultState}
+            currentSpeakingText={currentSpeakingText}
+            speakText={speakText}
+            playSound={playSound}
+            setEscudoStep={setEscudoStep}
+            loadSecondSituation={loadSecondSituation}
+            completeEscudoSession={completeEscudoSession}
+            setEscudoResultState={setEscudoResultState}
+            setEscudoHistory={setEscudoHistory}
+            escudoHistory={escudoHistory}
+            handleNav={handleNav}
+            userProfile={userProfile}
+            setUserProfile={setUserProfile}
+            getEscudoLevel={getEscudoLevel}
+          />
+        )}
       </main>
 
       {/* Persistent Emergency Help Panel */}
       {activeView !== 'simulador-mp' && renderHelpFooter()}
     </div>
   );
+}
+
+function EscudoView({
+  escudoStep,
+  escudoStreak,
+  escudoTotalSessions,
+  escudoSessionSituations,
+  escudoCurrentIndex,
+  escudoResultState,
+  currentSpeakingText,
+  speakText,
+  playSound,
+  setEscudoStep,
+  loadSecondSituation,
+  completeEscudoSession,
+  setEscudoResultState,
+  setEscudoHistory,
+  escudoHistory,
+  handleNav,
+  userProfile,
+  setUserProfile,
+  getEscudoLevel
+}) {
+  const currentSit = escudoSessionSituations[escudoCurrentIndex];
+
+  // Sub-view: INTRO
+  const renderIntro = () => {
+    if (!currentSit) return <div className="escudo-container"><p>Cargando práctica de hoy...</p></div>;
+    
+    const categoryEmoji = 
+      currentSit.categoria === 'llamada' ? '📞' :
+      currentSit.categoria === 'whatsapp' ? '💬' :
+      currentSit.categoria === 'sms' ? '✉️' : '🔔';
+
+    const categoryName = 
+      currentSit.categoria === 'llamada' ? 'Llamada telefónica' :
+      currentSit.categoria === 'whatsapp' ? 'Mensaje de WhatsApp' :
+      currentSit.categoria === 'sms' ? 'Mensaje de texto (SMS)' : 'Notificación';
+
+    return (
+      <div className="escudo-container fade-in">
+        {/* Header navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <button
+            style={{
+              background: 'none',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+            onClick={() => handleNav('home')}
+          >
+            <ArrowLeft size={22} />
+          </button>
+          <h2>Práctica de hoy</h2>
+        </div>
+
+        <div className="card escudo-intro-card">
+          <div className="escudo-header-box">
+            <span className="escudo-shield-icon">🛡️</span>
+            <span className={`badge-escudo-nivel ${
+              escudoTotalSessions >= 6 ? 'badge-escudo-experto' :
+              escudoTotalSessions >= 3 ? 'badge-escudo-activo' : 'badge-escudo-basico'
+            }`}>
+              {getEscudoLevel(escudoTotalSessions)}
+            </span>
+            <span className="badge badge-green" style={{ fontSize: '0.95rem', marginTop: '6px' }}>
+              🔥 {escudoStreak} días seguidos practicando
+            </span>
+          </div>
+
+          <h3 style={{ fontSize: '1.4rem', marginBottom: '16px' }}>¿Preparado/a para proteger tus claves?</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: 1.5, marginBottom: '24px' }}>
+            Hoy vas a practicar con una simulación de <strong>{categoryName}</strong>. 
+            Mirala con atención y decidí qué hacer.
+          </p>
+
+          <div className="card" style={{ 
+            backgroundColor: 'var(--brand-primary-light)', 
+            borderColor: 'var(--border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '16px',
+            textAlign: 'left',
+            marginBottom: '24px'
+          }}>
+            <span style={{ fontSize: '36px' }}>{categoryEmoji}</span>
+            <div>
+              <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{currentSit.titulo}</h4>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{currentSit.descripcion_breve}</p>
+            </div>
+          </div>
+
+          <button 
+            className="btn btn-primary"
+            onClick={() => {
+              playSound('click');
+              setEscudoStep('situacion');
+            }}
+            style={{ minHeight: '52px', fontSize: '1.15rem' }}
+          >
+            🚀 Empezar práctica
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Sub-view: SITUACION
+  const renderSituacion = () => {
+    if (!currentSit) return null;
+
+    const renderLlamada = () => (
+      <div className="sim-llamada-box">
+        <div className="sim-llamada-avatar">📞</div>
+        <div className="sim-llamada-caller">{currentSit.contenido.emisor}</div>
+        <div className="sim-llamada-status">Llamada activa...</div>
+        <div className="sim-llamada-transcript">
+          <p className="sim-llamada-transcript-p">
+            "{currentSit.contenido.texto}"
+          </p>
+        </div>
+      </div>
+    );
+
+    const renderWhatsApp = () => (
+      <div className="sim-whatsapp-container">
+        <div className="sim-whatsapp-header">
+          <div className="sim-whatsapp-avatar">{currentSit.contenido.avatar || '👤'}</div>
+          <div className="sim-whatsapp-title">
+            <span className="sim-whatsapp-name">{currentSit.contenido.remitente}</span>
+            <span className="sim-whatsapp-status">En línea</span>
+          </div>
+        </div>
+        <div className="sim-whatsapp-body">
+          {currentSit.contenido.mensajes.map((msg, i) => (
+            <div key={i} className="sim-whatsapp-bubble sim-whatsapp-bubble-left">
+              {msg.texto}
+              <span className="sim-whatsapp-bubble-time">10:14</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    const renderSMS = () => (
+      <div className="sim-sms-container">
+        <div className="sim-sms-header">
+          Mensaje de: {currentSit.contenido.remitente}
+        </div>
+        <div className="sim-sms-body">
+          <div className="sim-sms-bubble">
+            {currentSit.contenido.texto}
+          </div>
+          <span className="sim-sms-footer">SMS • Recibido hace 1 min</span>
+        </div>
+      </div>
+    );
+
+    const renderNoti = () => (
+      <div className="sim-noti-container">
+        <div className="sim-noti-icon-box">🔔</div>
+        <div className="sim-noti-content">
+          <div className="sim-noti-header">
+            <span className="sim-noti-appName">{currentSit.contenido.remitente}</span>
+            <span className="sim-noti-time">Ahora</span>
+          </div>
+          <p className="sim-noti-text">{currentSit.contenido.texto}</p>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="escudo-container fade-in">
+        {/* Header progress info */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>
+            Situación {escudoCurrentIndex + 1} de {escudoSessionSituations.length}
+          </span>
+          <span className="badge badge-gold">
+            🛡️ {getEscudoLevel(escudoTotalSessions)}
+          </span>
+        </div>
+
+        <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '20px', color: 'var(--text-primary)' }}>
+            Revisá este escenario simulado:
+          </h3>
+
+          {/* Simulation mock */}
+          {currentSit.contenido.tipo === 'transcripcion_llamada' && renderLlamada()}
+          {currentSit.contenido.tipo === 'whatsapp_chat' && renderWhatsApp()}
+          {currentSit.contenido.tipo === 'sms_texto' && renderSMS()}
+          {currentSit.contenido.tipo === 'notificacion' && renderNoti()}
+
+          {/* Read-out button */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <button 
+              className={`btn-listen-icon ${currentSpeakingText && (currentSpeakingText.includes("Llamada telefónica") || currentSpeakingText.includes("Mensaje de WhatsApp") || currentSpeakingText.includes("Mensaje de texto")) ? 'speaking' : ''}`}
+              onClick={() => {
+                let textToSpeak;
+                if (currentSit.categoria === 'llamada') {
+                  textToSpeak = `Llamada telefónica simulada de ${currentSit.contenido.emisor}. Dice: ${currentSit.contenido.texto}. ¿Qué hacés vos?`;
+                } else if (currentSit.categoria === 'whatsapp') {
+                  const msgs = currentSit.contenido.mensajes.map(m => m.texto).join(". ");
+                  textToSpeak = `Mensaje de WhatsApp simulado de ${currentSit.contenido.remitente}. Dice: ${msgs}. ¿Qué hacés vos?`;
+                } else {
+                  textToSpeak = `Mensaje de texto simulado de ${currentSit.contenido.remitente}. Dice: ${currentSit.contenido.texto}. ¿Qué hacés vos?`;
+                }
+                speakText(textToSpeak, true);
+              }}
+              title="Escuchar la situación completa"
+              aria-label="Escuchar la situación completa"
+            >
+              {currentSpeakingText && (currentSpeakingText.includes("Llamada telefónica") || currentSpeakingText.includes("Mensaje de WhatsApp") || currentSpeakingText.includes("Mensaje de texto")) ? <VolumeX size={24} /> : <Volume2 size={24} />}
+            </button>
+          </div>
+
+          <p style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            marginBottom: '20px',
+            color: 'var(--text-primary)'
+          }}>
+            ¿Qué hacés vos?
+          </p>
+
+          {/* Two big options buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {currentSit.opciones.map((opt) => (
+              <button
+                key={opt.id}
+                className="btn btn-outline"
+                style={{
+                  minHeight: '56px',
+                  height: 'auto',
+                  padding: '16px 20px',
+                  fontSize: '1.1rem',
+                  textAlign: 'left',
+                  justifyContent: 'flex-start',
+                  lineHeight: '1.4',
+                  border: '1.5px solid var(--border-color)',
+                  borderRadius: '10px'
+                }}
+                onClick={() => {
+                  const isCorrect = opt.es_correcto;
+                  playSound(isCorrect ? 'success' : 'error');
+                  setEscudoResultState(isCorrect ? 'correct' : 'incorrect');
+                  
+                  // Add situation to history
+                  const updatedHistory = [...escudoHistory, currentSit.id];
+                  setEscudoHistory(updatedHistory);
+                  localStorage.setItem('chichin_escudo_history', JSON.stringify(updatedHistory));
+
+                  setEscudoStep('feedback');
+                }}
+              >
+                <span style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: '32px', 
+                  height: '32px', 
+                  borderRadius: '50%', 
+                  backgroundColor: 'var(--brand-primary-light)',
+                  color: 'var(--brand-primary)',
+                  fontWeight: 'bold',
+                  marginRight: '12px',
+                  flexShrink: 0
+                }}>
+                  {opt.id}
+                </span>
+                <span style={{ flex: 1 }}>{opt.texto}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Sub-view: FEEDBACK
+  const renderFeedback = () => {
+    if (!currentSit) return null;
+
+    const isCorrect = escudoResultState === 'correct';
+
+    return (
+      <div className="escudo-container fade-in">
+        <div className="card" style={{ padding: '24px', textAlign: 'center' }}>
+          {/* Visual Icon */}
+          <div className={`escudo-feedback-icon-container ${
+            isCorrect ? 'escudo-feedback-icon-success' : 'escudo-feedback-icon-error'
+          }`}>
+            {isCorrect ? '✓' : '✗'}
+          </div>
+
+          <h3 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: 'bold', 
+            color: isCorrect ? 'var(--color-success)' : 'var(--color-error)',
+            marginBottom: '16px'
+          }}>
+            {isCorrect ? '¡Muy bien, lo reconociste!' : 'Esta vez te engañaron'}
+          </h3>
+
+          <p style={{ 
+            fontSize: '1.15rem', 
+            lineHeight: 1.55, 
+            color: 'var(--text-body)',
+            marginBottom: '24px'
+          }}>
+            {isCorrect ? currentSit.feedback_correcto : currentSit.feedback_incorrecto}
+          </p>
+
+          {/* Red Flag instructional card */}
+          <div className="red-flag-card-box">
+            <div className="red-flag-card-title">
+              <AlertTriangle size={20} />
+              Señal de alerta (Red Flag):
+            </div>
+            <p className="red-flag-card-text">
+              {currentSit.red_flag_destacada}
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="divider" style={{ margin: '24px 0' }} />
+
+          {/* Options to continue */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {escudoCurrentIndex === 0 && (
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  playSound('click');
+                  loadSecondSituation();
+                }}
+                style={{ minHeight: '52px', fontSize: '1.1rem' }}
+              >
+                📖 Ver otra situación (+ puntos)
+              </button>
+            )}
+
+            <button
+              className={escudoCurrentIndex === 0 ? "btn btn-outline" : "btn btn-primary"}
+              onClick={() => {
+                playSound('click');
+                completeEscudoSession();
+              }}
+              style={{ minHeight: '52px', fontSize: '1.1rem' }}
+            >
+              {escudoCurrentIndex === 0 ? "Listo por hoy" : "Ver mi racha 🛡️"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Sub-view: RACHA / CIERRE
+  const renderRacha = () => {
+    const shieldLevel = getEscudoLevel(escudoTotalSessions);
+    return (
+      <div className="escudo-container fade-in">
+        <div className="card" style={{ padding: '32px 24px', textAlign: 'center' }}>
+          <span style={{ fontSize: '80px', display: 'block', marginBottom: '16px' }}>🛡️</span>
+          
+          <h2 style={{ fontSize: '1.8rem', color: 'var(--brand-primary)', marginBottom: '8px' }}>
+            ¡Escudo Activo!
+          </h2>
+          
+          <span className={`badge-escudo-nivel ${
+            escudoTotalSessions >= 6 ? 'badge-escudo-experto' :
+            escudoTotalSessions >= 3 ? 'badge-escudo-activo' : 'badge-escudo-basico'
+          }`} style={{ display: 'inline-block', marginBottom: '24px' }}>
+            {shieldLevel}
+          </span>
+
+          <div className="card" style={{ 
+            backgroundColor: 'var(--brand-primary-light)', 
+            borderColor: 'var(--brand-primary)',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: '28px'
+          }}>
+            <span style={{ fontSize: '32px', display: 'block', marginBottom: '6px' }}>🔥</span>
+            <h3 style={{ margin: 0, fontSize: '1.4rem' }}>{escudoStreak} días seguidos</h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.95rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              Practicando tu defensa contra estafas
+            </p>
+          </div>
+
+          <p style={{ 
+            fontSize: '1.15rem', 
+            lineHeight: 1.55, 
+            color: 'var(--text-body)', 
+            marginBottom: '32px',
+            fontWeight: 500
+          }}>
+            ¡Felicitaciones, {userProfile.name || 'estudiante'}, por cuidar tu seguridad digital! Recordá que una pequeña práctica todos los días te ayuda a reaccionar rápido en la vida real.
+          </p>
+
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              playSound('click');
+              // Give some rewards
+              setUserProfile(prev => ({
+                ...prev,
+                points: prev.points + 50,
+                medals: prev.medals.includes('Escudo Digital 🛡️') ? prev.medals : ['Escudo Digital 🛡️', ...prev.medals]
+              }));
+              handleNav('home');
+            }}
+            style={{ minHeight: '52px', fontSize: '1.15rem' }}
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  switch (escudoStep) {
+    case 'intro': return renderIntro();
+    case 'situacion': return renderSituacion();
+    case 'feedback': return renderFeedback();
+    case 'racha': return renderRacha();
+    default: return renderIntro();
+  }
 }
 
 function WelcomeScreen({ onSave, logoImg, speakText, playSound }) {
