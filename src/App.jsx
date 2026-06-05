@@ -4,6 +4,7 @@ import {
   ArrowLeft, AlertTriangle, X, Play
 } from 'lucide-react';
 import './App.css';
+import { Analytics } from '@vercel/analytics/react';
 import logoImg from './assets/logosinfondochichin.png';
 import { situaciones } from './data/situaciones';
 
@@ -3232,6 +3233,7 @@ function DiagnosticScreen({ userName, logoImg, playSound, onComplete }) {
           {step < totalSteps ? 'Siguiente pregunta ➜' : '¡Finalizar! 🎉'}
         </button>
       </div>
+      <Analytics />
     </div>
   );
 }
