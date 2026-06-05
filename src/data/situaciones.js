@@ -136,7 +136,7 @@ export const situaciones = [
       ]
     },
     "opciones": [
-      { "id": "A", "texto": "Toco el link para desbloquear mi cuenta rápido", "es_correcto": false },
+      { "id": "A", "texto": "Toco el enlace para desbloquear mi cuenta rápido", "es_correcto": false },
       { "id": "B", "texto": "No toco el enlace. Abro la aplicación oficial del banco para ver si está todo bien", "es_correcto": true }
     ],
     "feedback_correcto": "¡Excelente! Los bancos oficiales no te envían enlaces por WhatsApp ni SMS para restablecer claves. Acceder por fuera de los mensajes usando la aplicación oficial es la conducta más segura.",
@@ -159,12 +159,12 @@ export const situaciones = [
       ]
     },
     "opciones": [
-      { "id": "A", "texto": "Entro al link y pongo mis datos de tarjeta para pagar los $150", "es_correcto": false },
+      { "id": "A", "texto": "Entro al enlace y pongo mis datos de tarjeta para pagar los $150", "es_correcto": false },
       { "id": "B", "texto": "No toco nada. No estoy esperando un paquete y sospecho de la dirección web", "es_correcto": true }
     ],
     "feedback_correcto": "¡Perfecto! Es una estafa muy común. Te piden un monto mínimo de $150 pero lo que buscan es que pongas los datos de tu tarjeta de crédito en su página web falsa para clonarla.",
     "feedback_incorrecto": "Te engañaron esta vez. La pequeña suma de $150 es un anzuelo. Al poner tu tarjeta, les regalás el acceso a todos tus fondos.",
-    "red_flag_destacada": "Piden pago por reprogramar paquete con link externo — es una estafa.",
+    "red_flag_destacada": "Piden pago por reprogramar paquete con enlace externo — es una estafa.",
     "es_estafa": true
   },
   {
@@ -181,7 +181,7 @@ export const situaciones = [
       { "id": "A", "texto": "Pienso que es el banco y toco el enlace para reactivar", "es_correcto": false },
       { "id": "B", "texto": "Borro el mensaje. El banco no me manda enlaces por mensaje de texto", "es_correcto": true }
     ],
-    "feedback_correcto": "¡Muy bien! Los bancos nunca te van a mandar links para reactivar cuentas por mensaje de texto. Siempre que tengas dudas, ingresá a la app oficial directamente.",
+    "feedback_correcto": "¡Muy bien! Los bancos nunca te van a mandar enlaces para reactivar cuentas por mensaje de texto. Siempre que tengas dudas, ingresá a la app oficial directamente.",
     "feedback_incorrecto": "Te engañaron. El enlace imita al banco de verdad, pero es una trampa. Si ponés tus datos ahí, los estafadores podrán vaciarte la cuenta.",
     "red_flag_destacada": "Enlace en SMS para solucionar una urgencia — es fraude.",
     "es_estafa": true
@@ -197,12 +197,12 @@ export const situaciones = [
       "texto": "MERCADO PAGO: Se autorizó una compra por $240.000 en 'Frávega Electrónica'. Si desconoce esta transacción urgente, ingrese a: http://mercadopago.desconocimientos-seguros.com"
     },
     "opciones": [
-      { "id": "A", "texto": "Entro desesperado al link para cancelar la compra falsa", "es_correcto": false },
-      { "id": "B", "texto": "Ignoro el link, abro la app oficial de Mercado Pago y reviso mi historial", "es_correcto": true }
+      { "id": "A", "texto": "Entro desesperado al enlace para cancelar la compra falsa", "es_correcto": false },
+      { "id": "B", "texto": "Ignoro el enlace, abro la app oficial de Mercado Pago y reviso mi historial", "es_correcto": true }
     ],
     "feedback_correcto": "¡Gran decisión! Los estafadores juegan con el susto de compras millonarias para que entres rápido y pongas tus claves bancarias. Revisar tu app oficial te salvó.",
-    "feedback_incorrecto": "Esta vez caíste. Los delincuentes envían compras falsas caras para asustarte y hacer que entres a sus links maliciosos. Abrí siempre tu app para verificar.",
-    "red_flag_destacada": "Compra sospechosa con link para desconocer — los links son trampas.",
+    "feedback_incorrecto": "Esta vez caíste. Los delincuentes envían compras falsas caras para asustarte y hacer que entres a sus enlaces maliciosos. Abrí siempre tu app para verificar.",
+    "red_flag_destacada": "Compra sospechosa con enlace para desconocer — los enlaces son trampas.",
     "es_estafa": true
   },
   {
@@ -221,7 +221,7 @@ export const situaciones = [
     ],
     "feedback_correcto": "¡Exacto! El número de atención oficial está atrás de tu tarjeta física. Llamar ahí es la forma más segura de constatar los consumos de tu tarjeta de crédito.",
     "feedback_incorrecto": "Esta vez caíste. Al hacer clic e ingresar los datos de tu tarjeta para 'anular' la compra, en realidad les estás regalando tus números para que compren de verdad.",
-    "red_flag_destacada": "SMS de la tarjeta con link de cancelación — llama siempre al número de tu plástico.",
+    "red_flag_destacada": "SMS de la tarjeta con enlace de cancelación — llamá siempre al número de tu tarjeta.",
     "es_estafa": true
   },
   {
@@ -257,9 +257,9 @@ export const situaciones = [
       { "id": "A", "texto": "Es un mensaje legítimo, solo me avisa del turno y no me pide nada", "es_correcto": true },
       { "id": "B", "texto": "Es una estafa, seguro quieren robarme algo", "es_correcto": false }
     ],
-    "feedback_correcto": "¡Perfecto! Es un mensaje legítimo. Los avisos que solo informan, no contienen links extraños y no te piden claves, códigos ni dinero, son seguros y oficiales.",
-    "feedback_incorrecto": "Esta vez te equivocaste por desconfiar de más. Este mensaje es informativo, no pide ningún dato sensible, ni tiene links. Es un recordatorio legítimo de PAMI.",
-    "red_flag_destacada": "Mensaje informativo sin links ni pedidos de datos — es seguro.",
+    "feedback_correcto": "¡Perfecto! Es un mensaje legítimo. Los avisos que solo informan, no contienen enlaces extraños y no te piden claves, códigos ni dinero, son seguros y oficiales.",
+    "feedback_incorrecto": "Esta vez te equivocaste por desconfiar de más. Este mensaje es informativo, no pide ningún dato sensible, ni tiene enlaces. Es un recordatorio legítimo de PAMI.",
+    "red_flag_destacada": "Mensaje informativo sin enlaces ni pedidos de datos — es seguro.",
     "es_estafa": false
   },
   {
@@ -292,12 +292,12 @@ export const situaciones = [
       "texto": "BANCO PROVINCIA: Tu resumen de cuenta de la tarjeta Visa de Mayo ya se encuentra disponible para consultar. Podés acceder de forma segura a través de la app BIP oficial."
     },
     "opciones": [
-      { "id": "A", "texto": "Es legítimo. Me avisa dónde ingresar de forma segura sin darme un link", "es_correcto": true },
+      { "id": "A", "texto": "Es legítimo. Me avisa dónde ingresar de forma segura sin darme un enlace", "es_correcto": true },
       { "id": "B", "texto": "Es estafa. Seguro es mentira para que entre a mi cuenta", "es_correcto": false }
     ],
     "feedback_correcto": "¡Exacto! Es legítimo. El banco te avisa que entres vos mismo por la aplicación oficial, sin mandarte un enlace directo. Esa es una buena práctica del banco real.",
-    "feedback_incorrecto": "Te equivocaste. El mensaje es legítimo justamente porque NO te incluye un link directo para robarte las claves. Te sugiere ingresar por la vía oficial, lo cual es muy seguro.",
-    "red_flag_destacada": "Te avisa pero no te manda links, te dice que uses la app oficial — es legítimo.",
+    "feedback_incorrecto": "Te equivocaste. El mensaje es legítimo justamente porque NO te incluye un enlace directo para robarte las claves. Te sugiere ingresar por la vía oficial, lo cual es muy seguro.",
+    "red_flag_destacada": "Te avisa pero no te manda enlaces, te dice que uses la app oficial — es legítimo.",
     "es_estafa": false
   }
 ]

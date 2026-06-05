@@ -278,10 +278,10 @@ function App() {
 
   const quizQuestions = [
     {
-      q: 'Si recibís una llamada o mensaje de alguien que dice ser de Supervielle y te pide una "clave de seguridad" o código de verificación, ¿qué tenés que hacer?',
+      q: 'Si te llaman por teléfono y te piden tu contraseña o clave, ¿qué tenés que hacer?',
       options: [
-        { text: 'Pasarle el código rápido para evitar que me cierren la cuenta.', isCorrect: false, feedback: '❌ ¡Cuidado! Ninguna aplicación real ni banco te pedirá jamás tus contraseñas o códigos por llamada o mensaje. ¡Nunca los compartas!' },
-        { text: 'Cortar de inmediato la llamada y avisar a mi tutor o familia.', isCorrect: true, feedback: '✅ ¡Excelente! Cortar la comunicación y buscar ayuda es la decisión más segura. ¡Muy bien protegido!' }
+        { text: 'Decírsela para evitar que me cierren la cuenta.', isCorrect: false, feedback: '❌ ¡Cuidado! Nunca digas tus contraseñas por teléfono. Ningún banco te las va a pedir jamás.' },
+        { text: 'No dársela a nadie y cortar la llamada de inmediato.', isCorrect: true, feedback: '✅ ¡Excelente! Cortar la llamada es la decisión más segura. ¡Las claves son secretas!' }
       ]
     },
     {
@@ -2350,7 +2350,7 @@ function App() {
       </main>
 
       {/* Persistent Emergency Help Panel */}
-      {activeView !== 'simulador-mp' && renderHelpFooter()}
+      {activeView !== 'simulador-mp' && activeView !== 'escudo' && renderHelpFooter()}
     </div>
   );
 }
@@ -2420,15 +2420,6 @@ function EscudoView({
         <div className="card escudo-intro-card">
           <div className="escudo-header-box">
             <span className="escudo-shield-icon">🛡️</span>
-            <span className={`badge-escudo-nivel ${
-              escudoTotalSessions >= 6 ? 'badge-escudo-experto' :
-              escudoTotalSessions >= 3 ? 'badge-escudo-activo' : 'badge-escudo-basico'
-            }`}>
-              {getEscudoLevel(escudoTotalSessions)}
-            </span>
-            <span className="badge badge-green" style={{ fontSize: '0.95rem', marginTop: '6px' }}>
-              🔥 {escudoStreak} días seguidos practicando
-            </span>
           </div>
 
           <h3 style={{ fontSize: '1.4rem', marginBottom: '16px' }}>¿Preparado/a para proteger tus claves?</h3>
@@ -2536,14 +2527,7 @@ function EscudoView({
     return (
       <div className="escudo-container fade-in">
         {/* Header progress info */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>
-            Situación {escudoCurrentIndex + 1} de {escudoSessionSituations.length}
-          </span>
-          <span className="badge badge-gold">
-            🛡️ {getEscudoLevel(escudoTotalSessions)}
-          </span>
-        </div>
+
 
         <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
           <h3 style={{ fontSize: '1.35rem', marginBottom: '20px', color: 'var(--text-primary)' }}>
@@ -2681,7 +2665,7 @@ function EscudoView({
           <div className="red-flag-card-box">
             <div className="red-flag-card-title">
               <AlertTriangle size={20} />
-              Señal de alerta (Red Flag):
+              Señal de alerta:
             </div>
             <p className="red-flag-card-text">
               {currentSit.red_flag_destacada}
@@ -2730,16 +2714,13 @@ function EscudoView({
         <div className="card" style={{ padding: '32px 24px', textAlign: 'center' }}>
           <span style={{ fontSize: '80px', display: 'block', marginBottom: '16px' }}>🛡️</span>
           
-          <h2 style={{ fontSize: '1.8rem', color: 'var(--brand-primary)', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '1.8rem', color: 'var(--brand-primary)', marginBottom: '4px' }}>
             ¡Escudo Activo!
           </h2>
-          
-          <span className={`badge-escudo-nivel ${
-            escudoTotalSessions >= 6 ? 'badge-escudo-experto' :
-            escudoTotalSessions >= 3 ? 'badge-escudo-activo' : 'badge-escudo-basico'
-          }`} style={{ display: 'inline-block', marginBottom: '24px' }}>
-            {shieldLevel}
-          </span>
+          <p style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 0, marginBottom: '20px' }}>
+            Tu nivel: {shieldLevel}
+          </p>
+
 
           <div className="card" style={{ 
             backgroundColor: 'var(--brand-primary-light)', 
@@ -2955,7 +2936,7 @@ function DiagnosticScreen({ userName, logoImg, playSound, onComplete }) {
       pregunta: '¿Alguna vez te pasó o te contaron algo así?',
       opciones: [
         { id: 'a', emoji: '📞', texto: 'Me llamaron diciéndome que gané un premio y me pidieron datos' },
-        { id: 'b', emoji: '🔗', texto: 'Me llegó un link por WhatsApp pidiéndome mi clave del banco' },
+        { id: 'b', emoji: '🔗', texto: 'Me llegó un enlace por WhatsApp pidiéndome mi clave del banco' },
         { id: 'c', emoji: '😟', texto: 'No me pasó nada de eso, pero no sé bien cómo protegerme' },
         { id: 'd', emoji: '✅', texto: 'Conozco las estafas más comunes y sé cómo cuidarme' },
       ]
