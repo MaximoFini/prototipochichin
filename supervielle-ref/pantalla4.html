@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Supervielle - Confirmar Datos</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style data-purpose="custom-styles">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #f3f4f6;
+    }
+    
+    .overflow-hidden-when-modal-open {
+      overflow: hidden;
+    }
+
+    .custom-checkbox {
+      appearance: none;
+      background-color: transparent;
+      margin: 0;
+      font: inherit;
+      color: currentColor;
+      width: 1.25em;
+      height: 1.25em;
+      border: 1px solid #9ca3af;
+      border-radius: 0.25em;
+      display: grid;
+      place-content: center;
+      cursor: pointer;
+    }
+
+    .custom-checkbox::before {
+      content: "";
+      width: 0.65em;
+      height: 0.65em;
+      transform: scale(0);
+      transition: 120ms transform ease-in-out;
+      box-shadow: inset 1em 1em white;
+      background-color: white;
+      transform-origin: center;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .custom-checkbox:checked {
+      background-color: #b91c42;
+      border-color: #b91c42;
+    }
+
+    .custom-checkbox:checked::before {
+      transform: scale(1);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen relative overflow-hidden-when-modal-open">
+
+  <!-- BEGIN: Main Content Area (Background) -->
+  <div class="pt-12 px-4 pb-20 max-w-md mx-auto relative z-0 opacity-40 transition-opacity duration-300">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between mb-8">
+      <button onclick="window.location.href='pantalla2.html'" class="text-gray-600 focus:outline-none">
+        <i class="fa-solid fa-arrow-left text-xl"></i>
+      </button>
+      <h1 class="text-lg font-medium">¿A quién vas a transferir?</h1>
+      <div class="w-6"></div>
+    </div>
+    <!-- Search Bar -->
+    <div class="relative mb-8">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <i class="fa-solid fa-search text-gray-400 text-lg"></i>
+      </div>
+      <input id="bg-search-input" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 focus:outline-none sm:text-sm shadow-sm text-gray-700" placeholder="Buscar" type="text" value="maxifinirp" readonly/>
+      <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+        <button onclick="window.location.href='pantalla2.html'" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Search Result Context -->
+    <div class="bg-gray-200 rounded-2xl p-8 text-center mt-4">
+      <div class="flex justify-center mb-4">
+        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
+          <i class="fa-regular fa-address-book text-2xl"></i>
+        </div>
+      </div>
+      <h2 id="bg-alias-display" class="text-lg font-semibold text-gray-800 mb-2">"maxifinirp"</h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        No figura en tu Agenda de contactos.<br/>
+        Continuá para verificar los datos.
+      </p>
+    </div>
+  </div>
+  <!-- END: Main Content Area (Background) -->
+
+  <!-- BEGIN: Overlay Background -->
+  <div aria-hidden="true" class="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300"></div>
+  <!-- END: Overlay Background -->
+
+  <!-- BEGIN: Bottom Sheet Modal -->
+  <div class="fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out translate-y-0 max-w-md mx-auto w-full">
+    <div class="bg-white rounded-t-3xl shadow-2xl flex flex-col pt-2 pb-6 px-4 sm:px-6">
+      <!-- Drag Handle -->
+      <div class="flex justify-center w-full mb-4">
+        <div class="w-10 h-1 bg-gray-200 rounded-full"></div>
+      </div>
+      <!-- Recipient Header -->
+      <div class="flex items-center space-x-4 mb-6 border-b border-gray-100 pb-4">
+        <div class="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
+          <img alt="Icono" class="w-8 h-8 object-cover mix-blend-multiply opacity-80 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAifNT4BXf3BtaAmluotPq5w1Z5p43ivIx9Lkm1lJrzLzYDsHW3q1Tttvb1FfZ4mAUOK9Glw3Kry9E8cyqwL_jZnYraA3FdkOTPJ-rWvcZgvrpi9xdX7g67BBEuCClIMCxE5CC4EBTeUuM_CudpSvJuVa2ASb6R7fcu48VntX0w3WKUDC835B3Wb5mhDRPVTQ1HwPhS-RTpU_YbJZY6S-XREYUc_0-N68TRucM1fWPHfR5UDdtju7sqszj4fhrJajVFbbcy-ZpgAHE"/>
+        </div>
+        <div>
+          <h3 id="recipient-name" class="text-lg font-medium text-gray-900">Máximo Fini</h3>
+          <p id="recipient-cuit" class="text-sm text-gray-500 mt-0.5">CUIT / CUIL: 20-46765034-4</p>
+        </div>
+      </div>
+      <!-- Transfer Details -->
+      <div class="space-y-4 mb-6 flex-grow">
+        <!-- Entity -->
+        <div>
+          <p id="recipient-bank" class="text-base font-medium text-gray-900">MERCADO LIBRE SRL</p>
+          <p class="text-sm text-gray-500 mt-0.5">CV ARS</p>
+        </div>
+        <!-- Alias -->
+        <div>
+          <p class="text-sm font-medium text-gray-800">Alias</p>
+          <p id="recipient-alias" class="text-sm text-gray-500 mt-0.5">maxifinirp</p>
+        </div>
+        <!-- CVU -->
+        <div>
+          <p class="text-sm font-medium text-gray-800">CVU</p>
+          <p id="recipient-cvu" class="text-sm text-gray-500 mt-0.5 font-mono">0000003100001987951820</p>
+        </div>
+      </div>
+      <!-- Add to Contacts Checkbox -->
+      <div class="mb-6 pt-2 border-t border-gray-100">
+        <label class="flex items-center space-x-3 cursor-pointer group">
+          <input id="chk-add-contact" class="custom-checkbox focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+          <span class="text-gray-700 text-base select-none">Agregar a la Agenda de contactos.</span>
+        </label>
+      </div>
+      <!-- Actions -->
+      <div class="space-y-3 mt-auto">
+        <button id="btn-continue" class="w-full bg-[#b91c42] hover:bg-[#9d1738] text-white font-medium py-3.5 px-4 rounded-xl transition duration-150 ease-in-out text-center active:scale-[0.98]">
+          Continuar
+        </button>
+        <button id="btn-close" onclick="window.location.href='pantalla2.html'" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-3.5 px-4 rounded-xl transition duration-150 ease-in-out text-center active:scale-[0.98]">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- END: Bottom Sheet Modal -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Retrieve recipient details from search
+      const recipientSearch = localStorage.getItem('transfer_recipient_search') || 'maxifinirp';
+      const name = localStorage.getItem('transfer_recipient_name') || 'Máximo Fini';
+      const cuit = localStorage.getItem('transfer_recipient_cuit') || '20-46765034-4';
+      const bank = localStorage.getItem('transfer_recipient_bank') || 'MERCADO LIBRE SRL';
+      const cvu = localStorage.getItem('transfer_recipient_cvu') || '0000003100001987951820';
+
+      // Set values on elements
+      document.getElementById('bg-search-input').value = recipientSearch;
+      document.getElementById('bg-alias-display').textContent = `"${recipientSearch}"`;
+      document.getElementById('recipient-name').textContent = name;
+      document.getElementById('recipient-cuit').textContent = `CUIT / CUIL: ${cuit}`;
+      document.getElementById('recipient-bank').textContent = bank;
+      document.getElementById('recipient-alias').textContent = recipientSearch;
+      document.getElementById('recipient-cvu').textContent = cvu;
+
+      // Checkbox state saving
+      const chkAdd = document.getElementById('chk-add-contact');
+      chkAdd.addEventListener('change', () => {
+        localStorage.setItem('transfer_add_to_contacts', chkAdd.checked ? 'true' : 'false');
+      });
+
+      // Continue action
+      document.getElementById('btn-continue').addEventListener('click', () => {
+        localStorage.setItem('transfer_add_to_contacts', chkAdd.checked ? 'true' : 'false');
+        window.location.href = 'pantalla5.html';
+      });
+    });
+  </script>
+</body>
+</html>

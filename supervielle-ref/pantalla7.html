@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Supervielle - Transferencia Exitosa</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <style data-purpose="custom-colors">
+    .bg-app { background-color: #f7f7fb; }
+    .text-main { color: #333333; }
+    .text-secondary { color: #767676; }
+    .btn-primary-bg { background-color: #b5123d; }
+    .btn-secondary-bg { background-color: #f0f0f5; }
+    .btn-secondary-text { color: #333333; }
+    .icon-green-light { fill: #b9fbc0; }
+    .icon-green-dark { fill: #00c698; }
+  </style>
+</head>
+<body class="bg-app min-h-screen flex flex-col font-sans">
+
+  <!-- BEGIN: Header -->
+  <header class="flex justify-between items-center p-4 pt-12 relative" data-purpose="status-bar-and-close">
+    <!-- Status bar mock (left) -->
+    <div class="flex items-center space-x-2 text-sm font-semibold text-black">
+      <span>17:02</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </div>
+    <!-- Status bar mock (right) -->
+    <div class="flex items-center space-x-1 text-sm font-semibold text-black">
+      <svg class="w-4 h-4" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path clip-rule="evenodd" d="M19.428 15.518c.677-.677.677-1.776 0-2.453L12.453 6.09c-.677-.677-1.776-.677-2.453 0-.677.677-.677 1.776 0 2.453l6.975 6.975c.677.677 1.776.677 2.453 0zM10 6a2 2 0 100-4 2 2 0 000 4z" fill-rule="evenodd"></path>
+      </svg>
+      <span>4G</span>
+      <div class="flex items-center border border-gray-400 rounded-sm px-1 py-0.5 text-xs">
+        47
+        <div class="ml-0.5 w-0.5 h-1.5 bg-black rounded-r-sm"></div>
+      </div>
+    </div>
+    <!-- Close button -->
+    <button id="btn-close" onclick="finishFlow()" aria-label="Close" class="absolute top-12 right-4 text-gray-500 hover:text-gray-800" data-purpose="close-button">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+      </svg>
+    </button>
+  </header>
+  <!-- END: Header -->
+
+  <!-- BEGIN: Main Content -->
+  <main class="flex-grow flex flex-col items-center px-6 pt-16 pb-8" data-purpose="success-details">
+    <!-- Success Icon -->
+    <div class="relative w-32 h-32 mb-6" data-purpose="success-icon">
+      <!-- Outer circle -->
+      <svg class="w-full h-full" viewbox="0 0 100 100">
+        <circle class="icon-green-dark" cx="50" cy="50" r="50"></circle>
+        <!-- Inner circle gradient -->
+        <circle class="icon-green-light" cx="50" cy="50" opacity="0.8" r="35"></circle>
+        <!-- Checkmark -->
+        <path d="M35 50 L45 60 L65 40" fill="none" stroke="#00c698" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"></path>
+      </svg>
+    </div>
+    <!-- Confirmation Text -->
+    <div class="text-center mb-8" data-purpose="confirmation-message">
+      <h1 id="success-title" class="text-xl font-medium text-main mb-2 leading-tight">
+        Transferiste $1 a tu cuenta<br/>
+        MERCADO LIBRE SRL
+      </h1>
+      <p class="text-secondary text-sm">
+        Podés encontrar esta operación en los<br/>
+        movimientos de tu cuenta.
+      </p>
+    </div>
+    <!-- Action Card -->
+    <div id="btn-agenda-contacto" class="w-full bg-white rounded-2xl p-5 shadow-sm mb-auto cursor-pointer flex justify-between items-center" data-purpose="action-card">
+      <span class="text-main font-medium">Agendar contacto</span>
+    </div>
+  </main>
+  <!-- END: Main Content -->
+
+  <!-- BEGIN: Footer Buttons -->
+  <footer class="px-6 pb-8 space-y-3" data-purpose="action-buttons">
+    <button id="btn-receipt" class="w-full btn-primary-bg text-white font-medium py-4 rounded-xl text-center" data-purpose="receipt-button">
+      Ir al comprobante
+    </button>
+    <button id="btn-back-to-transfers" onclick="finishFlow()" class="w-full btn-secondary-bg btn-secondary-text font-medium py-4 rounded-xl text-center" data-purpose="back-button">
+      Volver a Transferencias
+    </button>
+  </footer>
+  <!-- END: Footer Buttons -->
+
+  <script>
+    function finishFlow() {
+      // Clear temporary transfer variables, keeping search history if desired
+      localStorage.removeItem('transfer_amount');
+      localStorage.removeItem('transfer_reference');
+      localStorage.removeItem('transfer_recipient_search');
+      window.location.href = 'pantalla1.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Retrieve values from localStorage
+      const name = localStorage.getItem('transfer_recipient_name') || 'MERCADO LIBRE SRL';
+      const amount = localStorage.getItem('transfer_amount') || '1';
+      const addedToContacts = localStorage.getItem('transfer_add_to_contacts') === 'true';
+
+      // Update success message
+      const successTitle = document.getElementById('success-title');
+      successTitle.innerHTML = `Transferiste $${amount} a tu cuenta<br/>${name}`;
+
+      // If already added, change card text
+      const agendaCard = document.getElementById('btn-agenda-contacto');
+      if (addedToContacts) {
+        agendaCard.innerHTML = '<span class="text-green-600 font-medium"><i class="fa-solid fa-check mr-2"></i>Contacto Agendado</span>';
+        agendaCard.style.cursor = 'default';
+      } else {
+        agendaCard.addEventListener('click', () => {
+          localStorage.setItem('transfer_add_to_contacts', 'true');
+          agendaCard.innerHTML = '<span class="text-green-600 font-medium"><i class="fa-solid fa-check mr-2"></i>Contacto Agendado</span>';
+          agendaCard.style.cursor = 'default';
+          alert("¡Contacto guardado en tu Agenda!");
+        });
+      }
+
+      document.getElementById('btn-receipt').addEventListener('click', () => {
+        alert(`Comprobante de Operación:\nDestinatario: ${name}\nMonto: $${amount}\nFecha: ${new Date().toLocaleDateString()}`);
+      });
+    });
+  </script>
+</body>
+</html>

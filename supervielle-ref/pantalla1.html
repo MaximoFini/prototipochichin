@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Supervielle - Inicio</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style data-purpose="custom-fonts">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5eefc 0%, #ffffff 50%, #f0f4fc 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#C21833',
+              purple: '#6C47FF',
+              green: '#25D366',
+              yellow: '#FFDD00',
+              gray: '#F5F6F8',
+              text: {
+                main: '#1C1C1E',
+                muted: '#6E6E73'
+              }
+            }
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            'btn': '0 2px 10px -1px rgba(0, 0, 0, 0.03)',
+            'nav': '0 -4px 20px -5px rgba(0, 0, 0, 0.05)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen text-brand-text-main pb-24 overflow-x-hidden">
+
+  <!-- BEGIN: Top Status Bar & Header -->
+  <header class="pt-12 px-5 pb-4 sticky top-0 z-20 backdrop-blur-md bg-white/30">
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <svg class="w-8 h-8 text-brand-red" fill="currentColor" viewbox="0 0 24 24">
+          <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z"></path>
+        </svg>
+        <h1 id="user-greeting" class="text-xl font-medium text-gray-700">Hola, Maximo</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btn-chat-whatsapp" class="flex items-center gap-2 bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
+          Chat
+          <i class="fab fa-whatsapp text-brand-green text-lg"></i>
+        </button>
+        <button id="btn-toggle-visibility" class="w-9 h-9 rounded-full bg-white/60 flex items-center justify-center hover:bg-white/80 transition-colors">
+          <i class="far fa-eye text-gray-600" id="visibility-icon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  <!-- END: Top Status Bar & Header -->
+
+  <main class="px-5 space-y-6">
+    <!-- BEGIN: Balance Cards Carousel -->
+    <section class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-5 px-5 no-scrollbar">
+      <!-- Main Account Card -->
+      <div class="snap-center shrink-0 w-[85vw] max-w-sm bg-white rounded-3xl p-5 shadow-card border border-gray-100">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-sm text-brand-text-muted">CA • 5110-2</span>
+          <button id="btn-share-cbu" class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+            Alias/CBU
+            <i class="fas fa-share-nodes text-xs text-gray-500"></i>
+          </button>
+        </div>
+        <div class="mb-6">
+          <h2 id="balance-amount" class="text-4xl font-semibold mb-2">$ 372.280</h2>
+          <div class="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded-md text-sm font-medium border border-green-100">
+            <i class="fas fa-arrow-up text-xs"></i>
+            16%
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <button id="btn-transferir-card" onclick="window.location.href='pantalla3.html'" class="bg-gray-50 hover:bg-gray-100 py-3 rounded-xl text-sm font-medium transition-colors shadow-btn border border-gray-100">
+            Transferir
+          </button>
+          <button id="btn-ingresar-card" class="bg-gray-50 hover:bg-gray-100 py-3 rounded-xl text-sm font-medium transition-colors shadow-btn border border-gray-100">
+            Ingresar
+          </button>
+          <button id="btn-extraer-card" class="bg-gray-50 hover:bg-gray-100 py-3 rounded-xl text-sm font-medium transition-colors shadow-btn border border-gray-100">
+            Extraer
+          </button>
+        </div>
+      </div>
+      <!-- Secondary Card Placeholder -->
+      <div class="snap-center shrink-0 w-[85vw] max-w-sm bg-white rounded-3xl p-5 shadow-card border border-gray-100 flex items-center justify-center">
+        <span class="text-gray-400 font-medium">Inversiones</span>
+      </div>
+    </section>
+    <!-- END: Balance Cards Carousel -->
+
+    <!-- BEGIN: Quick Actions Grid -->
+    <section class="grid grid-cols-4 gap-y-6 gap-x-2 pt-2">
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-recarga" class="w-16 h-16 bg-white rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fas fa-mobile-screen text-brand-red text-xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1">Hacer una<br/>recarga</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-inversion" class="w-16 h-16 bg-white rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fas fa-arrow-trend-up text-brand-red text-xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1">Inversión<br/>Rápida</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-whatsapp-chat" class="w-16 h-16 bg-brand-green rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform text-white">
+          <i class="fab fa-whatsapp text-2xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1 mt-1">Chat</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-iol" class="w-16 h-16 bg-brand-purple rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform text-white">
+          <span class="font-bold text-lg tracking-wider">iOL</span>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1">Acciones y<br/>Bonos</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-transferir-quick" onclick="window.location.href='pantalla3.html'" class="w-16 h-16 bg-white rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fas fa-exchange-alt text-brand-red text-xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1">Transferir<br/>dinero</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-tienda" class="w-16 h-16 bg-brand-yellow rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="far fa-handshake text-[#003366] text-2xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1 mt-1">Tienda</span>
+      </div>
+      <!-- Action Item -->
+      <div class="flex flex-col items-center gap-2">
+        <button id="btn-action-mas" class="w-16 h-16 bg-white rounded-2xl shadow-card flex items-center justify-center hover:scale-105 transition-transform">
+          <i class="fas fa-plus text-brand-red text-xl"></i>
+        </button>
+        <span class="text-xs text-center text-brand-text-muted font-medium leading-tight px-1 mt-1">Mostrar<br/>más</span>
+      </div>
+    </section>
+    <!-- END: Quick Actions Grid -->
+
+    <!-- BEGIN: Upcoming Services Section -->
+    <section class="pt-4">
+      <h3 class="text-lg text-gray-700 font-medium mb-4">Servicios por vencer</h3>
+      <div class="bg-white rounded-3xl p-5 shadow-card border border-gray-100 flex items-start gap-4">
+        <div class="w-12 h-12 shrink-0 bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-center">
+          <i class="fas fa-plus text-brand-red"></i>
+        </div>
+        <div>
+          <h4 class="font-medium text-gray-800 mb-1">Hacé un nuevo pago</h4>
+          <p class="text-sm text-brand-text-muted leading-snug">Y recibí avisos para los próximos vencimientos.</p>
+        </div>
+      </div>
+    </section>
+    <!-- END: Upcoming Services Section -->
+  </main>
+
+  <!-- BEGIN: Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-nav pt-2 pb-6 px-4 z-30 border-t border-gray-100">
+    <div class="flex justify-between items-end relative">
+      <!-- Nav Item -->
+      <button class="flex flex-col items-center gap-1 w-1/5 relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-brand-red rounded-full"></div>
+        <i class="fas fa-home text-brand-red text-xl mt-1"></i>
+        <span class="text-[10px] text-brand-red font-medium">Inicio</span>
+      </button>
+      <!-- Nav Item -->
+      <button class="flex flex-col items-center gap-1 w-1/5">
+        <i class="fas fa-wallet text-gray-400 text-xl"></i>
+        <span class="text-[10px] text-gray-500 font-medium">Tarjetas</span>
+      </button>
+      <!-- Center QR Button -->
+      <div class="w-1/5 flex justify-center relative">
+        <button id="btn-nav-qr" class="absolute bottom-4 w-16 h-16 bg-white rounded-full shadow-card flex items-center justify-center border-4 border-gray-50 hover:scale-105 transition-transform z-40">
+          <i class="fas fa-qrcode text-gray-700 text-2xl"></i>
+        </button>
+        <span class="text-[10px] text-gray-500 font-medium absolute -bottom-1">Pago con QR</span>
+      </div>
+      <!-- Nav Item -->
+      <button class="flex flex-col items-center gap-1 w-1/5">
+        <i class="fas fa-hand-holding-dollar text-gray-400 text-xl"></i>
+        <span class="text-[10px] text-gray-500 font-medium">Préstamos</span>
+      </button>
+      <!-- Nav Item -->
+      <button class="flex flex-col items-center gap-1 w-1/5">
+        <i class="fas fa-th-large text-gray-400 text-xl"></i>
+        <span class="text-[10px] text-gray-500 font-medium">Menú</span>
+      </button>
+    </div>
+  </nav>
+  <!-- END: Bottom Navigation -->
+
+  <style data-purpose="utilities">
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Dynamic user greeting
+      const savedName = localStorage.getItem('chichin_username') || 'Maximo';
+      document.getElementById('user-greeting').textContent = `Hola, ${savedName}`;
+
+      // Toggle balance visibility
+      let isVisible = true;
+      const toggleBtn = document.getElementById('btn-toggle-visibility');
+      const visibilityIcon = document.getElementById('visibility-icon');
+      const balanceEl = document.getElementById('balance-amount');
+
+      toggleBtn.addEventListener('click', () => {
+        isVisible = !isVisible;
+        if (isVisible) {
+          visibilityIcon.className = 'far fa-eye text-gray-600';
+          balanceEl.textContent = '$ 372.280';
+        } else {
+          visibilityIcon.className = 'far fa-eye-slash text-gray-600';
+          balanceEl.textContent = '$ ••••••••';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -122,36 +122,36 @@ function App() {
   const [incorrectTapsCount, setIncorrectTapsCount] = useState(0);
   const [isRetest, setIsRetest] = useState(false);
   const [simulatedDaysPassed, setSimulatedDaysPassed] = useState(0);
-  const [balanceVisible, setBalanceVisible] = useState(true);
   const [isRetestTime, setIsRetestTime] = useState(false);
+  const [recipientInput, setRecipientInput] = useState('maxifinirp');
+  const [amountInput, setAmountInput] = useState('1');
 
   const getAssistantText = useCallback(() => {
     if (practicePhase === 'guided') {
-      if (practiceStep === 1) {
-        return `¡Hola ${userProfile.name}! Vamos a aprender a realizar una transferencia de forma segura. Primero, tocá el botón "Transferir dinero" que está en los accesos rápidos de arriba.`;
-      } else if (practiceStep === 2) {
-        return `¡Excelente! Ahora estamos en la pantalla de confirmación de la transferencia. Revisá que el destinatario sea "Juan Pérez" y el monto sea de $5.000. Luego, tocá el botón rojo "Confirmar transferencia" de abajo.`;
-      } else if (practiceStep === 3) {
-        return `¡Brillante! La transferencia simulada se realizó con éxito y no usaste dinero real. Ahora tocá el botón verde "Finalizar" para terminar este paso.`;
+      switch (practiceStep) {
+        case 1: return `¡Hola ${userProfile.name}! Vas a practicar cómo transferir dinero. Buscá el botón «Transferir» en tu cuenta y tocalo.`;
+        case 2: return `¡Muy bien! Ahora elegí la opción «A un CBU, CVU o Alias» para buscar a quién le vas a transferir.`;
+        case 3: return `Perfecto. Ahora buscá el alias del destinatario. Tocá el botón de buscar para continuar.`;
+        case 4: return `¡Genial! Aparecieron los datos del destinatario. Verificá que sea correcto y tocá «Continuar».`;
+        case 5: return `Ahora ingresá el monto que querés transferir y tocá «Continuar».`;
+        case 6: return `Este es el resumen de tu transferencia. Revisá que todo esté bien y tocá «Transferir dinero».`;
+        case 7: return `¡Excelente! La transferencia fue exitosa. Esto es solo práctica, no se usó dinero real. Tocá «Finalizar».`;
+        default: return '';
       }
     } else if (practicePhase === 'free') {
       if (inactivitySeconds >= 40) {
-        if (practiceStep === 1) {
-          return `Ayuda de Coco: Buscá en la parte superior el acceso rápido de "Transferir dinero" (el primer botón con flechas) y tocalo.`;
-        } else if (practiceStep === 2) {
-          return `Ayuda de Coco: Tocá el botón rojo de abajo que dice "Confirmar transferencia" para completar la operación.`;
-        } else if (practiceStep === 3) {
-          return `Ayuda de Coco: Tocá el botón verde que dice "Finalizar" para salir de la pantalla de éxito.`;
-        }
-      } else {
-        if (practiceStep === 1) {
-          return `Modo Libre - Paso 1 de 3: Buscá el acceso rápido que dice "Transferir dinero" y tocalo. ¡Probá tu autonomía!`;
-        } else if (practiceStep === 2) {
-          return `Modo Libre - Paso 2 de 3: Confirmá los datos de Juan Pérez por $5.000 y tocá el botón rojo "Confirmar transferencia". ¡Podés hacerlo solo/a!`;
-        } else if (practiceStep === 3) {
-          return `Modo Libre - Paso 3 de 3: ¡Casi listo! Tocá el botón "Finalizar" para completar la práctica.`;
+        switch (practiceStep) {
+          case 1: return `Buscá el botón «Transferir» en la tarjeta de tu cuenta y tocalo.`;
+          case 2: return `Tocá la opción «A un CBU, CVU o Alias».`;
+          case 3: return `Tocá el botón de buscar para encontrar al destinatario.`;
+          case 4: return `Tocá el botón «Continuar» en el panel de abajo.`;
+          case 5: return `Tocá «Continuar» para avanzar.`;
+          case 6: return `Tocá el botón «Transferir dinero» de abajo.`;
+          case 7: return `Tocá «Finalizar» para terminar.`;
+          default: return '';
         }
       }
+      return `Objetivo: Transferí dinero a un contacto.`;
     }
     return '';
   }, [practicePhase, practiceStep, inactivitySeconds, userProfile.name]);
@@ -288,7 +288,7 @@ function App() {
 
   // Inactivity tracking (seconds) for Free Mode
   useEffect(() => {
-    if (activeView === 'simulador-mp' && practicePhase === 'free' && (practiceStep === 1 || practiceStep === 2 || practiceStep === 3)) {
+    if (activeView === 'simulador-mp' && (practicePhase === 'guided' || practicePhase === 'free') && practiceStep >= 1 && practiceStep <= 7) {
       inactivityTimerRef.current = setInterval(() => {
         setInactivitySeconds(prev => prev + 1);
       }, 1000);
@@ -307,7 +307,7 @@ function App() {
 
   // Open explanation overlay automatically at 40s if user is inactive in Free Mode
   useEffect(() => {
-    if (inactivitySeconds === 40 && practicePhase === 'free') {
+    if (inactivitySeconds === 40 && (practicePhase === 'guided' || practicePhase === 'free')) {
       Promise.resolve().then(() => {
         setShowExplanationOverlay(true);
       });
@@ -763,7 +763,7 @@ function App() {
 
 
   // VIEW: SUPERVIELLE SIMULATOR ("SISTEMA ESPEJO")
-  const renderArrow = (style) => {
+  const renderArrow = (style, showLabel = true) => {
     return (
       <div 
         className="guided-arrow" 
@@ -777,7 +777,7 @@ function App() {
           ...style
         }}
       >
-        <span style={{
+        {showLabel && <span style={{
           backgroundColor: '#B71C35',
           color: 'white',
           fontWeight: 'bold',
@@ -789,7 +789,7 @@ function App() {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
           Tocá acá
-        </span>
+        </span>}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 21L12 3" stroke="#B71C35" strokeWidth="4" strokeLinecap="round"/>
           <path d="M5 14L12 21L19 14" stroke="#B71C35" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -803,9 +803,13 @@ function App() {
     if (!text) return null;
 
     const stepTitles = {
-      1: "Paso 1 de 3: Iniciar transferencia",
-      2: "Paso 2 de 3: Confirmar datos",
-      3: "Paso 3 de 3: Comprobante de transferencia"
+      1: "Paso 1 de 7: Inicio",
+      2: "Paso 2 de 7: Opciones de transferencia",
+      3: "Paso 3 de 7: Buscar destinatario",
+      4: "Paso 4 de 7: Confirmar destinatario",
+      5: "Paso 5 de 7: Ingresar monto",
+      6: "Paso 6 de 7: Resumen",
+      7: "Paso 7 de 7: Transferencia exitosa"
     };
 
     return (
@@ -905,6 +909,8 @@ function App() {
               setIncorrectTapsCount(0);
               setInactivitySeconds(0);
               setShowExplanationOverlay(true);
+              setRecipientInput('maxifinirp');
+              setAmountInput('1');
             }}
           >
             <Play size={20} fill="white" /> Empezar
@@ -923,7 +929,7 @@ function App() {
             ¡Paso a paso guiado completado!
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontWeight: 500, fontSize: 'calc(1.05rem * var(--font-multiplier))', lineHeight: 1.5, margin: 0 }}>
-            ¡Muy bien hecho! Hiciste la transferencia siguiendo la guía. Ahora llegó el momento del verdadero desafío: <strong>hacerlo vos solo/a en Modo Libre</strong>, sin flechas ni guías de Coco.
+            ¡Muy bien hecho! Completaste las 7 pantallas de la transferencia con guía. Ahora llegó el momento del verdadero desafío: <strong>hacerlo vos solo/a en Modo Libre</strong>, sin flechas ni guías de Coco.
           </p>
 
           <button
@@ -936,6 +942,8 @@ function App() {
               setIncorrectTapsCount(0);
               setInactivitySeconds(0);
               setShowExplanationOverlay(true);
+              setRecipientInput('');
+              setAmountInput('');
             }}
           >
             🚀 Comenzar Modo Libre
@@ -1020,6 +1028,8 @@ function App() {
                 setPracticeStep(1);
                 setIncorrectTapsCount(0);
                 setInactivitySeconds(0);
+                setRecipientInput('maxifinirp');
+                setAmountInput('1');
               }}
             >
               🔄 Practicar otra vez
@@ -1037,406 +1047,683 @@ function App() {
       return !isTarget;
     };
 
+    const shouldPulse = (stepNum) => {
+      return practiceStep === stepNum && inactivitySeconds >= 20;
+    };
+
+    const arrowVisible = practicePhase === 'guided';
+    const arrowShowLabel = inactivitySeconds >= 40;
+
     return (
       <div 
-        className="phone-container flex flex-col relative"
+        className="phone-container flex flex-col relative sv-container"
         style={{
           width: '100%',
-          maxWidth: '480px',
+          maxWidth: '420px',
           height: 'calc(100vh - var(--header-height))',
-          backgroundColor: '#F8F9FA',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           margin: '0 auto',
-          boxShadow: '0 0 20px rgba(0,0,0,0.05)',
           overflow: 'hidden'
         }}
         onMouseDown={handleSimulatorInteraction}
         onTouchStart={handleSimulatorInteraction}
         onClick={handleIncorrectTap}
       >
-        
-        {/* VIEW STEP 1: HOME PAGE */}
-        {practiceStep === 1 && (
-          <>
-            {/* Header Section */}
-            <header 
-              className="pt-5 pb-3 px-5 bg-[#F8F9FA] sticky top-0 z-10 border-b border-gray-100"
-              style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
-            >
-              <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 relative">
-                    <svg fill="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 50L80 20L40 80Z" fill="#B71C35"></path>
-                      <path d="M20 50L80 80L40 20Z" fill="#801426"></path>
-                    </svg>
-                  </div>
-                  <span className="text-gray-600 font-medium text-base">Hola, {userProfile.name}</span>
-                </div>
-                <button 
-                  aria-label="Toggle visibility" 
-                  className="text-gray-400 hover:bg-gray-200 p-1.5 rounded-full transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playSound('click');
-                    setBalanceVisible(!balanceVisible);
-                  }}
-                >
-                  {balanceVisible ? <i className="fa-regular fa-eye-slash text-lg"></i> : <i className="fa-regular fa-eye text-lg"></i>}
-                </button>
-              </div>
 
-              {/* Balances */}
-              <div className="mb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-gray-500 text-base font-medium">CA</span>
-                    <span className="text-2xl font-bold text-gray-800 tracking-tight">
-                      {balanceVisible ? '$372.280' : '*******'}
-                    </span>
-                    {balanceVisible && <span className="text-lg font-bold text-gray-800">19</span>}
-                  </div>
-                  <i className="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
-                </div>
-                <div className="flex space-x-3 mt-1.5 text-xs text-gray-500 font-medium">
-                  <div>
-                    <span className="font-bold text-gray-700">U$D</span> {balanceVisible ? '16.484' : '*****'}{balanceVisible && <sup className="text-[9px]">84</sup>}
-                  </div>
-                  <div>
-                    <span className="font-bold text-gray-700">EUR</span> {balanceVisible ? '10.662' : '*****'}{balanceVisible && <sup className="text-[9px]">14</sup>}
-                  </div>
-                </div>
+        {/* ============ STEP 1: HOME ============ */}
+        {practiceStep === 1 && (
+          <div className="flex flex-col h-full bg-[#f7f7fb] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}>
+              <div className="sv-header-left">
+                {/* Logo */}
+                <svg className="sv-logo" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z"></path>
+                </svg>
+                <span className="sv-greeting">Hola, {userProfile.name}</span>
+              </div>
+              <div className="sv-header-right">
+                <button className="sv-chat-whatsapp">
+                  Chat <i className="fab fa-whatsapp"></i>
+                </button>
+                <button className="sv-icon-btn">
+                  <i className="far fa-eye text-gray-600"></i>
+                </button>
               </div>
             </header>
 
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto px-4 pb-20 hide-scrollbar">
-              
-              {/* Quick Actions Grid */}
-              <section 
-                className="grid grid-cols-4 gap-y-4 gap-x-1 my-5" 
-                style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
-              >
-                {[
-                  { icon: 'fa-arrow-right-arrow-left', label: 'Transferir\ndinero', badge: 'Nuevo' },
-                  { icon: 'fa-money-bill-wave', label: 'Extraer sin\ntarjeta' },
-                  { icon: 'fa-unlock-keyhole', label: 'Blanquear\nPIN' },
-                  { icon: 'fa-clock-rotate-left', label: 'Cuotificar\nConsumos' },
-                  { icon: 'fa-money-bill-transfer', label: 'Ingresar\ndinero', badge: 'Nuevo' },
-                  { icon: 'fa-arrow-trend-up', label: 'Inversión\nRápida' },
-                  { icon: 'fa-mobile-screen', label: 'Hacer una\nrecarga' },
-                  { icon: 'fa-plus', label: 'Mostrar\nmás' }
-                ].map((act, i) => {
-                  const isTransfer = act.label === 'Transferir\ndinero';
-                  return (
-                    <div 
-                      key={i} 
-                      className="flex flex-col items-center"
-                      style={{ position: 'relative', cursor: isTransfer ? 'pointer' : 'default' }}
+            <main className="sv-main hide-scrollbar">
+              {/* Balance Card */}
+              <div className="sv-balance-card">
+                <div className="sv-balance-card-header" style={{ opacity: isDimmed(1, false) ? 0.3 : 1 }}>
+                  <span className="sv-account-label">CA • 5110-2</span>
+                  <button className="sv-share-btn">
+                    Alias/CBU <i className="fas fa-share-nodes"></i>
+                  </button>
+                </div>
+                <div className="sv-balance-value-container" style={{ opacity: isDimmed(1, false) ? 0.3 : 1 }}>
+                  <h2 className="sv-balance-value">$ 372.280</h2>
+                  <div className="sv-percentage-badge">
+                    <i className="fas fa-arrow-up"></i> 16%
+                  </div>
+                </div>
+                <div className="sv-balance-actions">
+                  {/* TRANSFERIR - TARGET */}
+                  <div style={{ position: 'relative' }}>
+                    {arrowVisible && practiceStep === 1 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                    <button 
+                      className={`sv-balance-btn active w-full ${shouldPulse(1) ? 'pulse-correct-element' : ''}`}
+                      style={{ border: isDimmed(1, true) ? 'none' : '1px solid #eef0f3' }}
                       onClick={(e) => {
-                        if (isTransfer) {
-                          e.stopPropagation();
-                          playSound('click');
-                          setPracticeStep(2);
-                          setInactivitySeconds(0);
-                          setShowExplanationOverlay(true);
-                        }
+                        e.stopPropagation();
+                        playSound('click');
+                        setPracticeStep(2);
+                        setInactivitySeconds(0);
+                        setShowExplanationOverlay(true);
                       }}
                     >
-                      {isTransfer && practicePhase === 'guided' && practiceStep === 1 && renderArrow({ top: '-44px', left: '50%', transform: 'translateX(-50%)' })}
-                      
-                      <div 
-                        className={`w-12 h-12 bg-white rounded-2xl flex items-center justify-center relative mb-1.5 border ${isTransfer && practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : 'border-gray-100'}`} 
-                        style={{ 
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.04)',
-                          opacity: isDimmed(1, isTransfer) ? 0.3 : 1
-                        }}
-                      >
-                        <i className={`fa-solid ${act.icon} text-[#B71C35] text-lg`}></i>
-                        {act.badge && (
-                          <span className="absolute -bottom-1.5 bg-green-100 text-green-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-white">
-                            {act.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span 
-                        className="text-[10px] text-center text-gray-500 leading-tight whitespace-pre-line"
-                        style={{ opacity: isDimmed(1, isTransfer) ? 0.3 : 1 }}
-                      >
-                        {act.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </section>
+                      Transferir
+                    </button>
+                  </div>
+                  <button className="sv-balance-btn"
+                    style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}>
+                    Ingresar
+                  </button>
+                  <button className="sv-balance-btn"
+                    style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}>
+                    Extraer
+                  </button>
+                </div>
+              </div>
 
-              {/* Recommended Section */}
-              <section 
-                className="mb-6"
-                style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
-              >
-                <h3 className="text-gray-400 font-medium text-xs mb-2 px-1">Recomendados</h3>
-                <div className="bg-gradient-to-r from-[#8E187B] to-[#B42A9C] rounded-2xl p-4 relative overflow-hidden flex items-center h-22">
-                  <div className="z-10 w-2/3">
-                    <h4 className="text-white font-bold text-base leading-tight mb-0.5">Pedí tu préstamo</h4>
-                    <p className="text-white/80 text-xs">100% online.</p>
-                  </div>
-                  <div className="absolute right-0 top-1 w-20 h-20 flex items-center justify-center z-10">
-                    <i className="fa-solid fa-coins text-[#FFD700] text-4xl drop-shadow-md"></i>
-                  </div>
+              {/* Quick Actions */}
+              <section className="sv-quick-actions-grid"
+                style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn">
+                    <i className="fas fa-mobile-screen"></i>
+                  </button>
+                  <span className="sv-action-label">Hacer una<br/>recarga</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn">
+                    <i className="fas fa-arrow-trend-up"></i>
+                  </button>
+                  <span className="sv-action-label">Inversión<br/>Rápida</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn bg-green">
+                    <i className="fab fa-whatsapp"></i>
+                  </button>
+                  <span className="sv-action-label mt-1">Chat</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn bg-purple">
+                    <span>iOL</span>
+                  </button>
+                  <span className="sv-action-label">Acciones y<br/>Bonos</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn">
+                    <i className="fas fa-exchange-alt"></i>
+                  </button>
+                  <span className="sv-action-label">Transferir<br/>dinero</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn bg-yellow">
+                    <i className="far fa-handshake"></i>
+                  </button>
+                  <span className="sv-action-label mt-1">Tienda</span>
+                </div>
+                <div className="sv-action-item">
+                  <button className="sv-action-btn">
+                    <i className="fas fa-plus"></i>
+                  </button>
+                  <span className="sv-action-label mt-1">Mostrar<br/>más</span>
                 </div>
               </section>
 
-              {/* Services Section */}
-              <section className="mb-6">
-                <h3 
-                  className="text-gray-400 font-medium text-xs mb-2 px-1"
-                  style={{ opacity: isDimmed(1, false) ? 0.3 : 1 }}
-                >
-                  Servicios por vencer
-                </h3>
-                
-                <div>
-                  <div 
-                    className="bg-white rounded-2xl p-3.5 border border-gray-100 flex justify-between items-center"
-                    style={{ 
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.03)',
-                      opacity: isDimmed(1, false) ? 0.3 : 1,
-                      cursor: 'default'
-                    }}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-[#B71C35]">
-                        <i className="fa-solid fa-fire text-base"></i>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-800">Metrogas (Gas)</h4>
-                        <p className="text-[10px] text-gray-400">Vence hoy</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex items-center space-x-2">
-                      <span className="text-sm font-bold text-gray-800">$3.200</span>
-                      <button className="bg-[#B71C35] text-white text-[10px] font-bold px-3 py-1.5 rounded-full opacity-60 cursor-default" style={{ pointerEvents: 'none' }}>
-                        Pagar
-                      </button>
-                    </div>
+              {/* Services */}
+              <section style={{ opacity: isDimmed(1, false) ? 0.3 : 1 }}>
+                <h3 className="sv-section-title">Servicios por vencer</h3>
+                <div className="sv-service-card">
+                  <div className="sv-service-icon-container">
+                    <i className="fas fa-plus"></i>
+                  </div>
+                  <div>
+                    <h4 className="sv-service-title">Hacé un nuevo pago</h4>
+                    <p className="sv-service-subtitle">Y recibí avisos para los próximos vencimientos.</p>
                   </div>
                 </div>
               </section>
-
             </main>
 
-            {/* Bottom Navigation */}
-            <nav 
-              className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-5 py-2 flex justify-between items-center z-20" 
-              style={{ boxShadow: '0 -5px 15px rgba(0,0,0,0.02)', opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: isDimmed(1, false) ? 'none' : 'auto' }}
-            >
-              <button className="flex flex-col items-center w-12 text-[#B71C35]">
-                <i className="fa-solid fa-house text-lg mb-0.5"></i>
-                <span className="text-[9px] font-medium">Inicio</span>
+            {/* Bottom Nav */}
+            <nav className="sv-bottom-nav" style={{ opacity: isDimmed(1, false) ? 0.3 : 1, pointerEvents: 'none' }}>
+              <button className="sv-nav-item active">
+                <div className="sv-nav-indicator"></div>
+                <i className="fas fa-home"></i>
+                <span>Inicio</span>
               </button>
-              <button className="flex flex-col items-center w-12 text-gray-400">
-                <i className="fa-regular fa-credit-card text-lg mb-0.5"></i>
-                <span className="text-[9px] font-medium">Tarjetas</span>
+              <button className="sv-nav-item">
+                <i className="fas fa-wallet"></i>
+                <span>Tarjetas</span>
               </button>
-              
-              <div className="relative w-12 flex justify-center">
-                <button className="absolute -top-7 w-12 h-12 bg-white rounded-full flex flex-col items-center justify-center border border-gray-50 shadow-md">
-                  <i className="fa-solid fa-qrcode text-[#20A86E] text-xl"></i>
+              <div className="sv-qr-nav-container">
+                <button className="sv-qr-btn">
+                  <i className="fas fa-qrcode"></i>
                 </button>
-                <span className="absolute -bottom-3 text-[9px] font-medium text-gray-400 whitespace-nowrap">QR</span>
+                <span className="sv-qr-label">Pago con QR</span>
               </div>
-
-              <button className="flex flex-col items-center w-12 text-gray-400">
-                <i className="fa-solid fa-hand-holding-dollar text-lg mb-0.5"></i>
-                <span className="text-[9px] font-medium">Préstamos</span>
+              <button className="sv-nav-item">
+                <i className="fas fa-hand-holding-dollar"></i>
+                <span>Préstamos</span>
               </button>
-              <button className="flex flex-col items-center w-12 text-gray-400">
-                <i className="fa-solid fa-bars text-lg mb-0.5"></i>
-                <span className="text-[9px] font-medium">Menú</span>
+              <button className="sv-nav-item">
+                <i className="fas fa-th-large"></i>
+                <span>Menú</span>
               </button>
             </nav>
-          </>
+          </div>
         )}
 
-        {/* VIEW STEP 2: PAYMENT CONFIRMATION SCREEN */}
+        {/* ============ STEP 2: OPTIONS ============ */}
         {practiceStep === 2 && (
-          <div className="flex flex-col h-full bg-[#F5F6F8]">
-            {/* Nav Header */}
-            <div 
-              className="pt-5 pb-3 px-5 bg-white border-b border-gray-150 flex items-center space-x-3"
-              style={{ opacity: isDimmed(2, false) ? 0.3 : 1, pointerEvents: isDimmed(2, false) ? 'none' : 'auto' }}
-            >
-              <button 
-                className="text-gray-600 p-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSound('click');
-                  if (practicePhase === 'free') {
-                    setPracticeStep(1);
-                  }
-                }}
-              >
-                <ArrowLeft size={20} />
+          <div className="flex flex-col h-full bg-[#f8f9fc] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(2, false) ? 0.3 : 1 }}>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-arrow-left"></i>
               </button>
-              <span className="text-gray-800 font-bold text-lg">Confirmar Transferencia</span>
+              <h1 className="sv-title">Transferir dinero</h1>
+              <button className="sv-back-btn">
+                <i className="fa-regular fa-circle-question"></i>
+              </button>
+            </header>
+
+            <main className="sv-main hide-scrollbar">
+              <section className="sv-option-row">
+                {/* Option 1: CBU/CVU/Alias - TARGET */}
+                <div style={{ position: 'relative' }}>
+                  {arrowVisible && practiceStep === 2 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                  <button 
+                    className={`sv-option-card w-full ${shouldPulse(2) ? 'pulse-correct-element' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSound('click');
+                      setPracticeStep(3);
+                      setInactivitySeconds(0);
+                      setShowExplanationOverlay(true);
+                    }}
+                  >
+                    <div className="sv-option-card-left">
+                      <div className="sv-option-icon">
+                        <i className="fa-solid fa-building-columns"></i>
+                      </div>
+                      <span className="sv-option-text">A un CBU, CVU o Alias</span>
+                    </div>
+                    <i className="fa-solid fa-chevron-right text-gray-400"></i>
+                  </button>
+                </div>
+
+                {/* Option 2: MODO */}
+                <button className="sv-option-card modo-card"
+                  style={{ opacity: isDimmed(2, false) ? 0.3 : 1, pointerEvents: 'none' }}>
+                  <div className="sv-modo-main">
+                    <div className="sv-option-card-left">
+                      <div className="sv-option-icon modo">M</div>
+                      <span className="sv-option-text">A un celular con MODO</span>
+                    </div>
+                    <i className="fa-solid fa-chevron-right text-gray-400"></i>
+                  </div>
+                  <div className="sv-modo-badge">Nuevo</div>
+                </button>
+              </section>
+
+              {/* Favorites contacts empty state */}
+              <section style={{ opacity: isDimmed(2, false) ? 0.3 : 1 }}>
+                <h2 className="text-[15px] font-medium text-gray-500 mb-4 px-1">Contactos favoritos</h2>
+                <div className="sv-empty-state">
+                  <div className="sv-empty-state-icon">
+                    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24">
+                      <rect height="12" rx="2" ry="2" width="18" x="3" y="8"></rect>
+                      <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"></path>
+                      <path d="M12 12v.01"></path>
+                      <path d="M12 2v2"></path>
+                      <path d="M8 3l1 1"></path>
+                      <path d="M16 3l-1 1"></path>
+                    </svg>
+                  </div>
+                  <h3 className="sv-empty-state-title">Aún no tenés contactos favoritos</h3>
+                  <p className="sv-empty-state-desc">
+                    Desde CBU, CVU o Alias podés elegir a quien querés agregar a tu lista.
+                  </p>
+                  <button className="sv-outline-btn">
+                    Ir a Agenda de contactos
+                  </button>
+                </div>
+              </section>
+            </main>
+
+            {/* Bottom Nav */}
+            <nav className="sv-bottom-nav" style={{ opacity: isDimmed(2, false) ? 0.3 : 1, pointerEvents: 'none' }}>
+              <button className="sv-nav-item">
+                <i className="fas fa-home"></i>
+                <span>Inicio</span>
+              </button>
+              <button className="sv-nav-item">
+                <i className="fas fa-wallet"></i>
+                <span>Tarjetas</span>
+              </button>
+              <div className="sv-qr-nav-container">
+                <button className="sv-qr-btn">
+                  <i className="fas fa-qrcode"></i>
+                </button>
+                <span className="sv-qr-label">Pago con QR</span>
+              </div>
+              <button className="sv-nav-item">
+                <i className="fas fa-hand-holding-dollar"></i>
+                <span>Préstamos</span>
+              </button>
+              <button className="sv-nav-item">
+                <i className="fas fa-th-large"></i>
+                <span>Menú</span>
+              </button>
+            </nav>
+          </div>
+        )}
+
+        {/* ============ STEP 3: SEARCH RECIPIENT ============ */}
+        {practiceStep === 3 && (
+          <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(3, false) ? 0.3 : 1 }}>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-arrow-left"></i>
+              </button>
+              <h1 className="sv-title">¿A quién vas a transferir?</h1>
+              <div className="w-8"></div>
+            </header>
+            
+            <main className="sv-main hide-scrollbar">
+              {/* Search input + button */}
+              <div className="sv-input-container">
+                <div className="sv-input-icon">
+                  <i className="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <input 
+                  className="sv-input"
+                  placeholder="Ingresá nombre, CBU, CVU o Alias"
+                  type="text"
+                  value={recipientInput}
+                  onChange={(e) => setRecipientInput(e.target.value)}
+                  readOnly={practicePhase === 'guided'}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.stopPropagation();
+                      if (practicePhase === 'guided' || recipientInput.trim().length > 0) {
+                        playSound('click');
+                        setPracticeStep(4);
+                        setInactivitySeconds(0);
+                        setShowExplanationOverlay(true);
+                      }
+                    }
+                  }}
+                />
+                {/* Search Button - TARGET */}
+                <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}>
+                  {arrowVisible && practiceStep === 3 && renderArrow({ top: '-48px', right: '0px' }, arrowShowLabel)}
+                  <button 
+                    className={`sv-search-btn-absolute ${shouldPulse(3) ? 'pulse-correct-element' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (practicePhase === 'free' && !recipientInput.trim()) {
+                        setRecipientInput('maxifinirp');
+                      }
+                      playSound('click');
+                      setPracticeStep(4);
+                      setInactivitySeconds(0);
+                      setShowExplanationOverlay(true);
+                    }}
+                  >
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                  </button>
+                </div>
+              </div>
+
+              {/* Contacts section empty state */}
+              <section style={{ opacity: isDimmed(3, false) ? 0.3 : 1 }}>
+                <h2 className="text-[15px] font-medium text-gray-500 mb-4 px-1">Agenda de contactos</h2>
+                <div className="sv-empty-state">
+                  <div className="sv-empty-state-icon">
+                    <i className="fa-regular fa-address-book text-2xl"></i>
+                  </div>
+                  <h3 className="sv-empty-state-title">Aún no tenés contactos guardados</h3>
+                  <p className="sv-empty-state-desc">
+                    Cuando realices transferencias, vas a poder agendarlos para encontrarlos más fácil acá.
+                  </p>
+                </div>
+              </section>
+            </main>
+          </div>
+        )}
+
+        {/* ============ STEP 4: CONFIRM RECIPIENT ============ */}
+        {practiceStep === 4 && (
+          <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden relative">
+            {/* Background page dimmed or semi-transparent */}
+            <div className="flex flex-col h-full opacity-40 select-none pointer-events-none">
+              <header className="sv-header">
+                <button className="sv-back-btn"><i className="fa-solid fa-arrow-left"></i></button>
+                <h1 className="sv-title">¿A quién vas a transferir?</h1>
+                <div className="w-8"></div>
+              </header>
+              <main className="sv-main">
+                <div className="sv-input-container">
+                  <div className="sv-input-icon"><i className="fa-solid fa-magnifying-glass"></i></div>
+                  <input className="sv-input" type="text" value={recipientInput || 'maxifinirp'} readOnly />
+                </div>
+              </main>
             </div>
 
-            {/* Main Area */}
-            <div className="flex-1 p-5 overflow-y-auto hide-scrollbar">
-              
-              {/* Account selection card */}
-              <div 
-                className="bg-white rounded-2xl p-4 border border-gray-100 mb-4"
-                style={{ opacity: isDimmed(2, false) ? 0.3 : 1 }}
-              >
-                <p className="text-xs text-gray-400 font-medium mb-1">Debitar de</p>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">Caja de Ahorro en Pesos</p>
-                    <p className="text-xs text-gray-500">N° 4837-29103-2</p>
+            {/* Bottom Sheet overlay */}
+            <div className="sv-overlay">
+              <div className="sv-bottom-sheet">
+                <div className="sv-bottom-sheet-drag-handle"></div>
+                
+                {/* Destinatario Details */}
+                <div style={{ opacity: isDimmed(4, false) ? 0.3 : 1 }}>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">¿Querés transferir a este contacto?</h3>
+                  
+                  <div className="bg-[#f8f9fc] rounded-2xl p-4 border border-gray-100 flex items-center gap-4 mb-4">
+                    <div className="sv-avatar">
+                      <i className="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{recipientInput || 'maxifinirp'}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">CUIT/CUIL: 20-31000198-7</p>
+                      <p className="text-xs text-gray-500">Banco: Banco Supervielle S.A.</p>
+                      <p className="text-xs text-gray-500">CVU: 0000003100001987951820</p>
+                    </div>
                   </div>
-                  <span className="text-sm font-bold text-gray-800">$372.280,19</span>
+
+                  {/* Add to contacts Checkbox */}
+                  <label className="flex items-center gap-3 cursor-pointer py-1 select-none mb-1">
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 text-[#C21833] border-gray-300 rounded focus:ring-[#C21833]" 
+                      defaultChecked 
+                    />
+                    <span className="text-sm text-gray-700 font-medium">Agregar a mis contactos favoritos</span>
+                  </label>
+                </div>
+
+                {/* Bottom sheet buttons */}
+                <div className="flex flex-col gap-3 mt-2">
+                  <div style={{ position: 'relative' }}>
+                    {arrowVisible && practiceStep === 4 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                    <button 
+                      className={`sv-primary-btn ${shouldPulse(4) ? 'pulse-correct-element' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playSound('click');
+                        setPracticeStep(5);
+                        setInactivitySeconds(0);
+                        setShowExplanationOverlay(true);
+                      }}
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                  <button className="sv-secondary-btn"
+                    style={{ opacity: isDimmed(4, false) ? 0.3 : 1, pointerEvents: isDimmed(4, false) ? 'none' : 'auto' }}>
+                    Cerrar
+                  </button>
                 </div>
               </div>
-
-              {/* Service details card */}
-              <div 
-                className="bg-white rounded-2xl p-4 border border-gray-100 mb-6"
-                style={{ opacity: isDimmed(2, false) ? 0.3 : 1 }}
-              >
-                <p className="text-xs text-gray-400 font-medium mb-3">Detalle de la transferencia</p>
-                
-                <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Destinatario</span>
-                  <span className="text-sm font-bold text-gray-800">Juan Pérez</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Alias / CBU</span>
-                  <span className="text-sm font-bold text-gray-800">juan.perez.super</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Entidad</span>
-                  <span className="text-sm font-bold text-gray-800">Banco Supervielle</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-sm text-gray-500">Concepto</span>
-                  <span className="text-sm font-bold text-gray-800">Varios</span>
-                </div>
-
-                <hr className="my-4 border-gray-100" />
-
-                <div className="flex justify-between items-baseline">
-                  <span className="text-base font-bold text-gray-800">Monto a enviar</span>
-                  <span className="text-2xl font-bold text-[#B71C35]">$5.000,00</span>
-                </div>
-              </div>
-
-              {/* Confirm action button */}
-              <div style={{ position: 'relative', marginTop: '16px' }}>
-                {practicePhase === 'guided' && practiceStep === 2 && renderArrow({ top: '-44px', left: '50%', transform: 'translateX(-50%)' })}
-                
-                <button
-                  className={`btn btn-primary ${practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
-                  style={{
-                    backgroundColor: '#B71C35',
-                    borderColor: '#B71C35',
-                    borderRadius: '16px',
-                    fontWeight: 'bold',
-                    fontSize: '1.05rem',
-                    opacity: isDimmed(2, true) ? 0.3 : 1
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playSound('success');
-                    setPracticeStep(3);
-                    setInactivitySeconds(0);
-                    setShowExplanationOverlay(true);
-                  }}
-                >
-                  Confirmar transferencia
-                </button>
-              </div>
-
             </div>
           </div>
         )}
 
-        {/* VIEW STEP 3: COMPROBANTE DE ÉXITO */}
-        {practiceStep === 3 && (
-          <div className="flex flex-col h-full bg-[#FFFFFF] p-6 text-center justify-between">
-            <div className="my-auto">
-              <div 
-                className="w-16 h-16 bg-[#DCFCE7] text-[#15803D] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#BBF7D0]"
-              >
-                <i className="fa-solid fa-check text-2xl"></i>
-              </div>
-
-              <h3 className="text-lg font-bold text-gray-800 mb-2">¡Transferencia Realizada!</h3>
-              <p className="text-xs text-gray-500 mb-6 font-medium">Se envió el dinero con éxito.</p>
-
-              <div className="bg-[#F8F9FA] rounded-2xl p-4 border border-gray-100 text-left mb-6">
-                <div className="flex justify-between py-1.5">
-                  <span className="text-xs text-gray-500">Destinatario</span>
-                  <span className="text-xs font-bold text-gray-800">Juan Pérez</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-xs text-gray-500">Monto Enviado</span>
-                  <span className="text-xs font-bold text-gray-800">$5.000,00</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-xs text-gray-500">Comprobante Nro</span>
-                  <span className="text-xs font-bold text-gray-800">#10293847</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ position: 'relative', width: '100%', marginBottom: '10px' }}>
-              {practicePhase === 'guided' && practiceStep === 3 && renderArrow({ top: '-44px', left: '50%', transform: 'translateX(-50%)' })}
-              
-              <button
-                className={`btn btn-success ${practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
-                style={{
-                  backgroundColor: '#2E7D32',
-                  borderColor: '#2E7D32',
-                  borderRadius: '16px',
-                  fontWeight: 'bold'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSound('click');
-                  setInactivitySeconds(0);
-                  if (practicePhase === 'guided') {
-                    setPracticePhase('transition');
-                  } else {
-                    setPracticePhase('confirmation');
-                  }
-                }}
-              >
-                Finalizar
+        {/* ============ STEP 5: ENTER AMOUNT ============ */}
+        {practiceStep === 5 && (
+          <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(5, false) ? 0.3 : 1 }}>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-arrow-left"></i>
               </button>
-            </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '0.75rem', color: '#8E8E93', margin: 0, textTransform: 'uppercase' }}>CA ARS 178-6215110-2</p>
+                <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1C1C1E', margin: '2px 0 0 0' }}>$372.280</p>
+              </div>
+              <div className="w-8"></div>
+            </header>
+
+            <main className="sv-main hide-scrollbar">
+              <div className="sv-amount-center-container">
+                <h1 className="text-xl font-medium text-gray-800 mb-6" style={{ opacity: isDimmed(5, false) ? 0.3 : 1 }}>
+                  ¿Cuánto vas a transferirte?
+                </h1>
+                
+                <div className="sv-amount-display" style={{ opacity: isDimmed(5, false) ? 0.3 : 1 }}>
+                  <span className="sv-amount-currency">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="sv-amount-input"
+                    value={amountInput}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setAmountInput(val);
+                    }}
+                    placeholder="0"
+                    readOnly={practicePhase === 'guided'}
+                    style={{ border: 'none' }}
+                  />
+                </div>
+
+                <div className="sv-amount-line" style={{ opacity: isDimmed(5, false) ? 0.3 : 1 }}></div>
+
+                <div className="sv-amount-field-container" style={{ opacity: isDimmed(5, false) ? 0.3 : 1 }}>
+                  <label className="sv-amount-label">Referencia (Opcional)</label>
+                  <input className="sv-input" style={{ paddingLeft: '16px' }} value="Práctica Chichín" readOnly />
+                </div>
+              </div>
+
+              {/* Footer buttons */}
+              <div style={{ position: 'relative', width: '100%', paddingBottom: '20px' }}>
+                {arrowVisible && practiceStep === 5 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                <button 
+                  className={`sv-primary-btn ${shouldPulse(5) ? 'pulse-correct-element' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playSound('click');
+                    if (practicePhase === 'free' && !amountInput.trim()) {
+                      setAmountInput('1');
+                    }
+                    setPracticeStep(6);
+                    setInactivitySeconds(0);
+                    setShowExplanationOverlay(true);
+                  }}
+                >
+                  Continuar
+                </button>
+              </div>
+            </main>
+          </div>
+        )}
+
+        {/* ============ STEP 6: SUMMARY ============ */}
+        {practiceStep === 6 && (
+          <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-arrow-left"></i>
+              </button>
+              <h1 className="sv-title">Resumen</h1>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </header>
+
+            <main className="sv-main hide-scrollbar">
+              <div className="sv-summary-container">
+                {/* Destinatario */}
+                <div className="sv-summary-row" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+                  <span className="sv-summary-label">Vas a transferirte a</span>
+                  <div className="sv-summary-recipient">
+                    <div className="sv-avatar">
+                      <i className="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                      <h4 className="sv-summary-name">{recipientInput || 'maxifinirp'}</h4>
+                      <p className="sv-summary-subtext">CVU: 0000003100001987951820</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monto */}
+                <div className="sv-summary-row" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+                  <span className="sv-summary-label">Monto</span>
+                  <h3 className="sv-summary-value">$ {amountInput || '1'}</h3>
+                </div>
+
+                {/* Concepto */}
+                <div className="sv-summary-row" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+                  <div className="sv-summary-concept-row">
+                    <div>
+                      <span className="sv-summary-label">Concepto</span>
+                      <p className="sv-summary-concept-val">Varios</p>
+                    </div>
+                    <i className="fa-solid fa-chevron-down text-gray-400"></i>
+                  </div>
+                </div>
+
+                {/* Desde la cuenta */}
+                <div className="sv-summary-row no-border" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+                  <span className="sv-summary-label">Desde la cuenta</span>
+                  <div className="sv-summary-account">
+                    <div className="sv-summary-account-logo">
+                      <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z"></path></svg>
+                    </div>
+                    <div>
+                      <p className="sv-summary-name" style={{ fontSize: '0.85rem' }}>CA ARS 178-6215110-2</p>
+                      <p className="sv-summary-subtext" style={{ fontWeight: 600, color: '#1C1C1E' }}>$372.280</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons footer */}
+              <div className="absolute bottom-0 left-0 w-full px-5 pb-8 pt-4 bg-gradient-to-t from-[#f8f9fc] via-[#f8f9fc] to-transparent z-10">
+                <div className="flex items-center justify-center gap-2 mb-4 text-gray-500" style={{ opacity: isDimmed(6, false) ? 0.3 : 1 }}>
+                  <i className="fa-solid fa-circle-info text-sm"></i>
+                  <span className="text-[14px] font-medium">Revisá que los datos sean correctos.</span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  {arrowVisible && practiceStep === 6 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                  <button 
+                    className={`sv-primary-btn ${shouldPulse(6) ? 'pulse-correct-element' : ''}`}
+                    style={{ backgroundColor: '#B2133E' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSound('success');
+                      setPracticeStep(7);
+                      setInactivitySeconds(0);
+                      setShowExplanationOverlay(true);
+                    }}
+                  >
+                    Transferir dinero
+                  </button>
+                </div>
+              </div>
+            </main>
+          </div>
+        )}
+
+        {/* ============ STEP 7: SUCCESS ============ */}
+        {practiceStep === 7 && (
+          <div className="flex flex-col h-full bg-[#f8f9fc] overflow-hidden relative">
+            <header className="sv-header" style={{ opacity: isDimmed(7, false) ? 0.3 : 1, borderBottom: 'none' }}>
+              <div className="w-8"></div>
+              <div className="flex-1"></div>
+              <button className="sv-back-btn">
+                <i className="fa-solid fa-xmark text-gray-400"></i>
+              </button>
+            </header>
+
+            <main className="sv-main hide-scrollbar">
+              <div className="sv-success-main">
+                {/* Green checkmark circle */}
+                <div className="sv-success-circle" style={{ opacity: isDimmed(7, false) ? 0.3 : 1 }}>
+                  <div className="sv-success-icon-inner">
+                    <i className="fa-solid fa-check"></i>
+                  </div>
+                </div>
+
+                <div className="text-center" style={{ opacity: isDimmed(7, false) ? 0.3 : 1 }}>
+                  <h1 className="sv-success-title">
+                    Transferiste ${amountInput || '1'} a tu cuenta<br/>{recipientInput || 'maxifinirp'}
+                  </h1>
+                  <p className="sv-success-subtitle">
+                    Podés encontrar esta operación en los<br/>movimientos de tu cuenta.
+                  </p>
+                </div>
+
+                {/* Add Contact Card */}
+                <div className="sv-success-card-action" style={{ opacity: isDimmed(7, false) ? 0.3 : 1 }}>
+                  <span>Agendar contacto</span>
+                  <i className="fa-solid fa-chevron-right"></i>
+                </div>
+              </div>
+
+              {/* Action buttons footer */}
+              <div className="flex flex-col gap-3 px-5 pb-8">
+                <div style={{ position: 'relative' }}>
+                  {arrowVisible && practiceStep === 7 && renderArrow({ top: '-48px', left: '50%', transform: 'translateX(-50%)' }, arrowShowLabel)}
+                  <button 
+                    className={`sv-primary-btn ${shouldPulse(7) ? 'pulse-correct-element' : ''}`}
+                    style={{ backgroundColor: '#2E7D32' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSound('success');
+                      setInactivitySeconds(0);
+                      if (practicePhase === 'guided') {
+                        setPracticePhase('transition');
+                      } else {
+                        setPracticePhase('confirmation');
+                      }
+                    }}
+                  >
+                    Finalizar
+                  </button>
+                </div>
+                <button className="sv-secondary-btn"
+                  style={{ opacity: isDimmed(7, false) ? 0.3 : 1, pointerEvents: isDimmed(7, false) ? 'none' : 'auto' }}>
+                  Volver a Transferencias
+                </button>
+              </div>
+            </main>
           </div>
         )}
 
         {/* Floating Coco Helper Button */}
         {!showExplanationOverlay && (
           <button
-            className={`floating-coco-btn ${practicePhase === 'free' && inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
+            className={`floating-coco-btn ${inactivitySeconds >= 20 ? 'pulse-correct-element' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
               playSound('click');
+              setInactivitySeconds(0);
               setShowExplanationOverlay(true);
             }}
-            title="Ver explicación de Coco"
-            aria-label="Ver explicación de Coco"
+            title="Ayuda de Coco"
+            aria-label="Abrir explicación de Coco"
           >
             🦉
-            <span className="floating-coco-tooltip">Ayuda</span>
           </button>
         )}
+
       </div>
     );
   };

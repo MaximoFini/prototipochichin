@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Supervielle - Transferir dinero</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style data-purpose="custom-fonts">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fc;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen pb-[80px]">
+
+  <!-- BEGIN: Header -->
+  <header class="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+    <button id="btn-back" onclick="window.location.href='pantalla1.html'" class="text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
+      <i class="fa-solid fa-arrow-left text-xl"></i>
+    </button>
+    <h1 class="text-lg font-semibold text-gray-800">Transferir dinero</h1>
+    <button id="btn-help" class="text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
+      <i class="fa-regular fa-circle-question text-xl"></i>
+    </button>
+  </header>
+  <!-- END: Header -->
+
+  <!-- BEGIN: MainContent -->
+  <main class="flex-grow px-6 pt-6 pb-20 space-y-8">
+    <!-- Transfer Options -->
+    <section aria-label="Opciones de transferencia" class="space-y-4">
+      <!-- Option: CBU/CVU/Alias -->
+      <button id="btn-option-cbu" onclick="window.location.href='pantalla2.html'" class="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center justify-between hover:bg-gray-50 transition-colors active:scale-[0.98]">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#f4f5f8] flex items-center justify-center text-gray-500">
+            <i class="fa-solid fa-building-columns"></i>
+          </div>
+          <span class="text-[16px] font-medium text-gray-800">A un CBU, CVU o Alias</span>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-400"></i>
+      </button>
+
+      <!-- Option: MODO -->
+      <button id="btn-option-modo" class="w-full bg-white rounded-2xl p-0 shadow-sm border border-gray-100 flex flex-col overflow-hidden hover:bg-gray-50 transition-colors active:scale-[0.98]">
+        <div class="flex items-center justify-between p-5 w-full">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-[#f0f9f6] flex items-center justify-center text-[#00a868] font-bold text-xl">
+              M
+            </div>
+            <span class="text-[16px] font-medium text-gray-800">A un celular con MODO</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="bg-[#f0f9f6] text-[#00a868] text-sm font-medium py-2 text-center border-t border-[#d8efdf]">
+          Nuevo
+        </div>
+      </button>
+    </section>
+
+    <!-- Favorite Contacts Section -->
+    <section aria-labelledby="favoritos-title">
+      <h2 class="text-[15px] font-medium text-gray-500 mb-4 px-1" id="favoritos-title">Contactos favoritos</h2>
+      <!-- Empty State -->
+      <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-center text-center">
+        <div class="w-14 h-14 bg-[#f8f9fc] rounded-2xl flex items-center justify-center mb-6 text-gray-400">
+          <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24">
+            <rect height="12" rx="2" ry="2" width="18" x="3" y="8"></rect>
+            <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"></path>
+            <path d="M12 12v.01"></path>
+            <path d="M12 2v2"></path>
+            <path d="M8 3l1 1"></path>
+            <path d="M16 3l-1 1"></path>
+          </svg>
+        </div>
+        <h3 class="text-[17px] font-bold text-gray-800 mb-3">Aún no tenés contactos favoritos</h3>
+        <p class="text-[15px] text-gray-500 leading-relaxed mb-8 px-2">
+          Desde CBU, CVU o Alias podés elegir a quien querés agregar a tu lista.
+        </p>
+        <button id="btn-go-to-contacts" onclick="window.location.href='pantalla2.html'" class="border border-gray-300 text-gray-700 font-medium py-3 px-6 rounded-xl hover:bg-gray-50 transition-colors active:scale-95 w-full max-w-[280px]">
+          Ir a Agenda de contactos
+        </button>
+      </div>
+    </section>
+  </main>
+  <!-- END: MainContent -->
+
+  <!-- BEGIN: BottomNavigation -->
+  <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center pt-3 pb-6 px-2 z-20">
+    <button onclick="window.location.href='pantalla1.html'" class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-800 w-16">
+      <i class="fa-solid fa-house text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Inicio</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-800 w-16">
+      <i class="fa-regular fa-credit-card text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Tarjetas</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-[#00a868] w-20">
+      <div class="text-3xl font-bold leading-none mb-1">M</div>
+      <span class="text-[10px] font-medium">Pago con QR</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-800 w-16">
+      <div class="relative mb-1">
+        <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
+      </div>
+      <span class="text-[10px] font-medium">Préstamos</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-800 w-16">
+      <i class="fa-solid fa-border-all text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Menú</span>
+    </button>
+  </nav>
+  <!-- END: BottomNavigation -->
+
+  <script>
+    document.getElementById('btn-option-modo').addEventListener('click', () => {
+      alert("La integración con MODO no está disponible en este momento. Por favor utiliza 'A un CBU, CVU o Alias'.");
+    });
+  </script>
+</body>
+</html>
